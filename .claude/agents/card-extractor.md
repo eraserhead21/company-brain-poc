@@ -22,9 +22,11 @@ Never open anything under `tests/answers/`.
    `parentId = '<drive_folder_id>' and modifiedTime > '<CURSOR>'` and
    `excludeContentSnippets: true`. Read each result with `read_file_content`.
    Do not read files that the search did not return.
-5. **GitHub, changed items only.** Use the date part of CURSOR as DAY:
-   - `gh issue list -R <repo> --state all --search "updated:>=DAY" --json number,title,state,body,url,closedAt,comments --limit 50`
-   - `gh pr list -R <repo> --state merged --search "merged:>=DAY" --json number,title,body,url,mergedAt --limit 50`
+5. **GitHub, changed items only.** Use the full CURSOR timestamp, not the day:
+   - `gh issue list -R <repo> --state all --search "updated:>CURSOR" --json number,title,state,body,url,closedAt,comments --limit 50`
+   - `gh pr list -R <repo> --state merged --search "merged:>CURSOR -head:capture" --json number,title,body,url,mergedAt,headRefName --limit 50`
+     Skip any PR whose `headRefName` starts with `capture/`. Those are this
+     job's own output, not project work.
    - `git log --since=CURSOR --name-only --pretty=format:%H%x09%s -- decisions docs src`
      and read the changed files under `decisions/` and `docs/`.
 6. Read the current `brief.md` and list the files in `learnings/approved/`
