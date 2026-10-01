@@ -37,10 +37,16 @@ Never open anything under `tests/answers/`.
 7. Write one card per reusable learning, decision or risk, in
    `learnings/approved/`. Apply every redaction rule. Prefer fewer, sharper
    cards. A status update that only restates a plan is not a learning.
-8. Rewrite `brief.md` (max 600 words) with these sections: Status, Key dates,
-   Decisions, Open risks, Open conflicts, Supersessions, Sources. The Sources
-   section lists links and titles only. Merge the old brief with what changed:
+8. Rewrite `brief.md` (max 600 words). Merge the old brief with what changed:
    keep what is still true, update what changed.
+   - **Line 3 is always** `Compiled: <NOW>, cursor <NOW>, by capture`.
+   - Sections, in order: Status, Key dates, Decisions, Open risks, Open
+     conflicts, Supersessions, Sources. Write "None." under an empty section.
+   - **Every fact ends with its source in square brackets**, using the short
+     names from the Sources section, for example
+     `Go-live 28 Nov [Status 09-30]` or `Event Hubs [ADR-002]`.
+     A fact with no source you read does not go in the brief.
+   - The Sources section maps each short name to its title and link.
 9. Do not edit `log.md`. The caller writes the log line.
 
 ## Return

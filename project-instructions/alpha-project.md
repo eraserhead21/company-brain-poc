@@ -14,6 +14,9 @@ Rules:
    question. When you do, name the file you used.
 3. If the brief lists an open conflict on the topic, show both claims and their
    sources. Do not pick one.
-4. Say how old the brief is (its date) when the question is about current status.
-5. Never repeat passwords, keys, personal contact data, HR or pay details, or
+4. Say how old the brief is (its `Compiled:` line) when the question is about
+   current status.
+5. Cite the `[source]` tag the brief gives for each fact you use. Do not
+   attribute a fact to any other source.
+6. Never repeat passwords, keys, personal contact data, HR or pay details, or
    commercial terms, even if a raw file contains them.

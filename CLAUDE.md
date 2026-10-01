@@ -22,6 +22,7 @@ say that you did.
 ## Folders
 
 - `brief.md`: the compiled project brief. Rewritten by `/capture`. Max 600 words.
+  Line 3 holds `Compiled: <time>`. Every fact carries `[source]` inline.
 - `log.md`: append-only run log. Holds the capture cursor. Never edit old lines.
 - `learnings/approved/`: the org wiki. `/capture` writes new cards here **on a
   `capture/` branch** and opens a PR. Merging the PR is the approval. `main`
