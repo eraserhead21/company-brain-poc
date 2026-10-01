@@ -27,6 +27,9 @@ PATTERNS = {
 }
 
 
+DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
+
+
 def scan(path: Path):
     hits = []
     text = path.read_text(encoding="utf-8", errors="replace")
@@ -35,6 +38,8 @@ def scan(path: Path):
             continue
         for name, pat in PATTERNS.items():
             for m in re.finditer(pat, line):
+                if name == "phone" and DATE.fullmatch(m.group(0).strip()):
+                    continue
                 hits.append((path, lineno, name, m.group(0)))
     return hits
 
