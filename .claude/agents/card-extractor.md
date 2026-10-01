@@ -20,8 +20,11 @@ Never open anything under `tests/answers/`.
 3. Record the run start time: `date -u +%Y-%m-%dT%H:%M:%SZ`. Call it NOW.
 4. **Drive, changed files only.** Call `search_files` with
    `parentId = '<drive_folder_id>' and modifiedTime > '<CURSOR>'` and
-   `excludeContentSnippets: true`. Read each result with `read_file_content`.
-   Do not read files that the search did not return.
+   `excludeContentSnippets: true`. **The connector's date filter is not
+   reliable** (2026-10-01 test: it returned files modified before CURSOR).
+   Before reading, compare each result's own `modifiedTime` with CURSOR and
+   drop any file that is not strictly later. Read only the files left, with
+   `read_file_content`. Report the dropped count as `drive_filtered_out`.
 5. **GitHub, changed items only.** Use the full CURSOR timestamp, not the day:
    - `gh issue list -R <repo> --state all --search "updated:>CURSOR" --json number,title,state,body,url,closedAt,comments --limit 50`
    - `gh pr list -R <repo> --state merged --search "merged:>CURSOR -head:capture" --json number,title,body,url,mergedAt,headRefName --limit 50`
@@ -48,6 +51,7 @@ Reply with only this block, filled in:
 cursor_used: <CURSOR>
 new_cursor: <NOW>
 drive_files_read: <count> (<titles>)
+drive_filtered_out: <count returned by search but older than CURSOR>
 github_items_read: <issues count> issues, <prs count> PRs, <files count> repo files
 cards_written: <count> (<file names>)
 dropped_confidential: <count>
