@@ -10,7 +10,7 @@
 |---|---|---|
 | Design sign-off | 19 Sep | ✓ Done 19 Sep |
 | Backfill test (1 month) | — | ✓ Done, revealed throttle at 5k msg/s |
-| Backfill full (18 months) | 17 Oct (5 days) | ~15 Nov (15 days at 5k msg/s cap) |
+| Backfill full (18 months) | 17 Oct (5 days) | no date set (15 days at 5k msg/s cap) |
 | Shadow run | 3 Nov | 17 Nov (7-day gate: <0.1% daily mismatch per meter group) |
 | Go-live | 14 Nov | 28 Nov |
 
@@ -28,7 +28,7 @@
 
 ## Open risks
 
-**Firmware v2.3 malformed timestamps (HIGH).** Some meters send invalid timestamps (e.g., 2026-13-01T25:61). Currently rejected and logged. Customer owns the firmware fix; no date confirmed. Delays go-live by ~6 weeks pending fix or aging out of invalid readings in production.
+**Firmware v2.3 malformed timestamps (HIGH).** Some meters send invalid timestamps (e.g., 2026-13-01T25:61). Currently rejected and logged. Customer owns the firmware fix; no date confirmed. Delayed go-live by 2 weeks pending fix or aging out of invalid readings in production.
 
 **Customer data in error logs (HIGH).** Validation failure logs include raw request bodies with customer details. Mitigation in progress: mask sensitive fields before logging. Must close before production.
 
