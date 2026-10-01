@@ -11,7 +11,7 @@
 | Design sign-off | 19 Sep | ✓ Done 19 Sep |
 | Backfill test (1 month) | — | ✓ Done, revealed throttle at 5k msg/s |
 | Backfill full (18 months) | 17 Oct (5 days) | no date set (15 days at 5k msg/s cap) |
-| Shadow run | 3 Nov | 17 Nov (7-day gate: <0.1% daily mismatch per meter group) |
+| Shadow run | 3 Nov | 17 Nov (7-day gate: <0.1% daily mismatch, v2.4+ meter groups only) |
 | Go-live | 14 Nov | 28 Nov |
 
 ## Decisions
@@ -28,7 +28,7 @@
 
 ## Open risks
 
-**Firmware v2.3 malformed timestamps (HIGH).** Some meters send invalid timestamps (e.g., 2026-13-01T25:61). Currently rejected and logged. Customer owns the firmware fix; no date confirmed. Delayed go-live by 2 weeks pending fix or aging out of invalid readings in production.
+**Firmware v2.3 malformed timestamps (HIGH).** Some meters send invalid timestamps (e.g., 2026-13-01T25:61). Customer's v2.4 firmware fix is scheduled for 20 October. Meter groups unable to upgrade before then will be held out of the shadow run. Currently invalid readings are rejected and logged.
 
 **Customer data in error logs (HIGH).** Validation failure logs include raw request bodies with customer details. Mitigation in progress: mask sensitive fields before logging. Must close before production.
 
@@ -38,6 +38,6 @@
 
 ## Sources
 
-- **Drive:** Alpha - Project Charter (2026-09-08), Alpha - Solution Design v1 (2026-09-10), Alpha - Meeting Notes 2026-09-15 Kickoff, Alpha - Meeting Notes 2026-09-29 Weekly, Alpha - Status Update 2026-09-22, Alpha - Status Update 2026-09-30, Alpha - Risk Register (2026-09-30), Alpha - Team Channel Log (September), Alpha - Onboarding Notes
+- **Drive:** Alpha - Project Charter (2026-09-08), Alpha - Solution Design v1 (2026-09-10), Alpha - Meeting Notes 2026-09-15 Kickoff, Alpha - Meeting Notes 2026-09-29 Weekly, Alpha - Status Update 2026-09-22, Alpha - Status Update 2026-09-30, Alpha - Status Update 2026-10-01, Alpha - Risk Register (2026-09-30), Alpha - Team Channel Log (September), Alpha - Onboarding Notes
 - **GitHub:** [Issues #1–6](https://github.com/eraserhead21/claude-org-poc/issues), [PR #7](https://github.com/eraserhead21/claude-org-poc/pull/7)
 - **Repo:** [decisions/ADR-001](decisions/ADR-001-store-readings-in-utc.md), [decisions/ADR-002](decisions/ADR-002-message-broker.md), [docs/architecture.md](docs/architecture.md)
