@@ -40,8 +40,19 @@ Never open anything under `tests/answers/`.
 7. Write one card per reusable learning, decision or risk, in
    `learnings/approved/`. Apply every redaction rule. Prefer fewer, sharper
    cards. A status update that only restates a plan is not a learning.
+   A lesson stated in meeting notes (something the team asked to do earlier
+   next time) is a learning card, even if it is small.
 8. Rewrite `brief.md` (max 600 words). Merge the old brief with what changed:
    keep what is still true, update what changed.
+   - **Before you write it, list every claim that two sources state
+     differently** (a number, a date, a tool, an owner). A later source that
+     states a change ("moved to", "now", "replaces", "agreed") is a
+     supersession. Anything else is an open conflict. A later ADR that picks a
+     different option than an earlier design doc is a conflict unless the ADR
+     says it replaces the doc; if it does, record a supersession and call the
+     doc stale. Every open conflict goes under Open conflicts with both claims
+     and both sources.
+   - Before you return, check that no fact in the brief contradicts a card.
    - **Line 3 is always** `Compiled: <NOW>, cursor <NOW>, by capture`.
    - Sections, in order: Status, Key dates, Decisions, Open risks, Open
      conflicts, Supersessions, Sources. Write "None." under an empty section.
