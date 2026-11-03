@@ -1,0 +1,12 @@
+C1 fail brief states 30 days as settled ("originally 90"); no conflict flagged
+C2 fail brief states Event Hubs; the design doc's Kafka is neither flagged nor marked stale
+C3 fail on-call owner not mentioned anywhere
+S1 pass
+L1 pass
+L2 pass
+L3 pass
+L4 fail no card or brief line on requesting sandbox access at kickoff
+L5 pass
+L6 pass
+L7 pass
+L8 pass

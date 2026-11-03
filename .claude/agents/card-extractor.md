@@ -8,7 +8,7 @@ model: haiku
 You extract reusable knowledge from Project Alpha. Follow `CLAUDE.md` in the repo
 root exactly: the card format, the redaction rules and the conflict rules.
 
-Never open anything under `tests/answers/`.
+Never open anything under `tests/` (answer keys and scored results).
 
 `gh` may not be on PATH. If `gh` fails with "command not found", use
 `"/c/Program Files/GitHub CLI/gh.exe"`.

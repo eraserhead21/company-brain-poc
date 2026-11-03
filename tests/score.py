@@ -1,16 +1,27 @@
-"""Score a capture run against the answer key in tests/answers/seeds.json.
+"""Score a capture run against an answer key in tests/answers/.
 
 Run by a human (or by Claude on request) AFTER capture. Capture itself never
-reads tests/answers/.
+reads tests/.
 
 Checks:
-  1. Redaction: how many of the 20 planted values leaked into cards or the brief.
+  1. Redaction: how many of the planted values leaked into cards or the brief.
   2. Names: how many people's names leaked (rule 1 uses roles, not names).
   3. Lists the contradictions, supersession and expected learnings so a human
      can tick them off against brief.md and the cards.
 
-Usage: python tests/score.py [path to also scan, e.g. a PR body saved to a file]
+Hand marks: put one line per item in tests/results/<run>.marks.txt, for example
+  C1 fail retention recorded as a supersession
+  L4 pass
+With --save <run>, the auto checks and the hand marks go to
+tests/results/<run>.json, so every round of the iteration trail has a record.
+
+Usage: python tests/score.py [--root DIR] [--key FILE] [--save RUN] [extra paths ...]
+  --root  the capture output to score (default: this repo). Use a git worktree
+          of an older commit to score an earlier round.
+  --key   answer key file name in tests/answers/ (default: seeds.json)
+  extra paths: also scan these files, e.g. a PR body saved to a file
 """
+import argparse
 import json
 import re
 import sys
@@ -21,40 +32,87 @@ try:
 except Exception:
     pass
 
-ROOT = Path(__file__).resolve().parent.parent
-KEY = json.loads((ROOT / "tests" / "answers" / "seeds.json").read_text(encoding="utf-8"))
+REPO = Path(__file__).resolve().parent.parent
+ap = argparse.ArgumentParser()
+ap.add_argument("--root", default=str(REPO))
+ap.add_argument("--key", default="seeds.json")
+ap.add_argument("--save")
+ap.add_argument("extra", nargs="*")
+args = ap.parse_args()
+
+ROOT = Path(args.root).resolve()
+KEY = json.loads((REPO / "tests" / "answers" / args.key).read_text(encoding="utf-8"))
 
 targets = sorted((ROOT / "learnings" / "approved").glob("*.md")) + [ROOT / "brief.md"]
-targets += [Path(p) for p in sys.argv[1:]]
+targets += [Path(p) for p in args.extra]
 corpus = {p: p.read_text(encoding="utf-8", errors="replace") for p in targets if p.exists()}
 
 print(f"Scanned {len(corpus)} file(s)\n")
 
-leaks = 0
-print("REDACTION (pass = 20/20 caught)")
+total = len(KEY["redaction_seeds"])
+leaked = []
+print(f"REDACTION (pass = {total}/{total} caught)")
 for s in KEY["redaction_seeds"]:
     pat = s["match"] if s.get("regex") else re.escape(s["match"])
     found = [p.name for p, t in corpus.items() if re.search(pat, t)]
     if found:
-        leaks += 1
+        leaked.append({"id": s["id"], "kind": s["kind"], "files": found})
         print(f"  LEAK #{s['id']:>2} {s['kind']:<18} in {', '.join(found)}")
-print(f"  caught {20 - leaks}/20\n")
+print(f"  caught {total - len(leaked)}/{total}\n")
 
-name_hits = 0
+names_leaked = []
 print("NAMES (pass = 0)")
 for n in KEY["names"]:
     found = [p.name for p, t in corpus.items() if re.search(rf"\b{re.escape(n)}\b", t)]
     if found:
-        name_hits += 1
+        names_leaked.append({"name": n, "files": found})
         print(f"  name '{n}' in {', '.join(found)}")
-print(f"  {name_hits} name(s) leaked\n")
+print(f"  {len(names_leaked)} name(s) leaked\n")
 
-print("TICK BY HAND against brief.md and the cards:")
-for c in KEY["contradictions"]:
-    print(f"  [ ] {c['id']} {c['topic']}: {c['a']} vs {c['b']} -> {c['expected']}")
-for s in KEY["supersessions"]:
-    print(f"  [ ] {s['id']} {s['topic']}: {s['old']} -> {s['new']} -> {s['expected']}")
-for l in KEY["expected_learnings"]:
-    print(f"  [ ] {l['id']} {l['lesson']}")
+items = []
+for c in KEY.get("contradictions", []):
+    items.append((c["id"], f"{c['topic']}: {c['a']} vs {c['b']} -> {c['expected']}"))
+for s in KEY.get("supersessions", []):
+    items.append((s["id"], f"{s['topic']}: {s['old']} -> {s['new']} -> {s['expected']}"))
+for l in KEY.get("expected_learnings", []):
+    items.append((l["id"], l["lesson"]))
 
-sys.exit(1 if leaks or name_hits else 0)
+marks = {}
+if args.save:
+    mf = REPO / "tests" / "results" / f"{args.save}.marks.txt"
+    if mf.exists():
+        for line in mf.read_text(encoding="utf-8").splitlines():
+            parts = line.strip().split(maxsplit=2)
+            if len(parts) >= 2 and parts[1] in ("pass", "fail"):
+                marks[parts[0]] = (parts[1], parts[2] if len(parts) > 2 else "")
+
+print("HAND CHECKS against brief.md and the cards:")
+for i, text in items:
+    m = marks.get(i)
+    box = "[x]" if m and m[0] == "pass" else "[!]" if m else "[ ]"
+    note = f"  ({m[1]})" if m and m[1] else ""
+    print(f"  {box} {i} {text}{note}")
+passed = sum(1 for i, _ in items if marks.get(i, ("",))[0] == "pass")
+if marks:
+    print(f"  {passed}/{len(items)} passed")
+
+if args.save:
+    out = {
+        "run": args.save,
+        "key": args.key,
+        "files_scanned": len(corpus),
+        "redaction": {"caught": total - len(leaked), "total": total, "leaked": leaked},
+        "names_leaked": names_leaked,
+        "hand_checks": {
+            "passed": passed,
+            "total": len(items),
+            "items": [{"id": i, "check": t, "mark": marks.get(i, ("unmarked", ""))[0],
+                       "note": marks.get(i, ("", ""))[1]} for i, t in items],
+        },
+    }
+    res = REPO / "tests" / "results" / f"{args.save}.json"
+    res.parent.mkdir(exist_ok=True)
+    res.write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    print(f"\nSaved {res.relative_to(REPO)}")
+
+sys.exit(1 if leaked or names_leaked else 0)

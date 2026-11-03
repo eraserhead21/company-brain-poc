@@ -1,0 +1,12 @@
+C1 fail recorded as a supersession; the rule lists "agreed" as a change word
+C2 pass
+C3 pass flagged, but names redacted to "one Engineer" vs "a different Engineer", hard to read
+S1 pass
+L1 pass
+L2 pass
+L3 pass
+L4 pass
+L5 pass
+L6 pass
+L7 pass
+L8 pass brief Decisions line, no card
