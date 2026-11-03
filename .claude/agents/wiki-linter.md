@@ -7,7 +7,7 @@ model: haiku
 
 You check the wiki. You do not fix it. Follow `CLAUDE.md` in the repo root.
 
-Never open anything under `tests/answers/`. Do not read Drive or GitHub.
+Never open anything under `tests/` (answer keys and scored results). Do not read Drive or GitHub.
 
 ## Steps
 

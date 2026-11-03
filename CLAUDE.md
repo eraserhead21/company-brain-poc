@@ -32,8 +32,12 @@ say that you did.
   title to `sources/` path).
 - `sources/`: Markdown exports of the Drive docs, so citations resolve in the
   public repo. Capture reads Drive, not this folder, and cites these paths.
-- `tests/answers/`: answer keys for the tests. Gitignored. **Never read this
-  folder during capture or lint.** Reading it invalidates the tests.
+- `tests/answers/`: answer keys for the tests. Gitignored.
+- `tests/results/`: one scored record per capture round (`score.py --save`).
+- **Never read anything under `tests/` during capture or lint.** Reading it
+  invalidates the tests.
+- `iterations/`: one file per improvement round: score before, misses, rule
+  change, score after, cost.
 
 ## Learning card format
 

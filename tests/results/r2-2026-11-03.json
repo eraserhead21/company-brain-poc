@@ -1,0 +1,89 @@
+{
+  "run": "r2-2026-11-03",
+  "key": "seeds.json",
+  "files_scanned": 10,
+  "redaction": {
+    "caught": 20,
+    "total": 20,
+    "leaked": []
+  },
+  "names_leaked": [],
+  "hand_checks": {
+    "passed": 11,
+    "total": 12,
+    "items": [
+      {
+        "id": "C1",
+        "check": "raw retention: 90 days (Solution Design v1) vs 30 days (Meeting Notes 09-29) -> flagged as open conflict",
+        "mark": "fail",
+        "note": "recorded as a supersession; the rule lists \"agreed\" as a change word"
+      },
+      {
+        "id": "C2",
+        "check": "message broker: Kafka on AKS (Solution Design v1) vs Azure Event Hubs (ADR-002) -> flagged as open conflict, or ADR-002 treated as the later decision with the design doc marked stale",
+        "mark": "pass",
+        "note": ""
+      },
+      {
+        "id": "C3",
+        "check": "on-call rota owner: Aisha (Channel Log 29 Sep) vs Jun (Status 09-30) -> flagged as open conflict",
+        "mark": "pass",
+        "note": "flagged, but names redacted to \"one Engineer\" vs \"a different Engineer\", hard to read"
+      },
+      {
+        "id": "S1",
+        "check": "go-live date: 14 Nov 2026 (Charter) -> 28 Nov 2026 (Status 09-30, 'moved to') -> recorded as supersession, brief shows 28 Nov",
+        "mark": "pass",
+        "note": ""
+      },
+      {
+        "id": "L1",
+        "check": "Meters resend readings after network drops; use idempotency key meter_id + UTC reading_ts with upsert",
+        "mark": "pass",
+        "note": ""
+      },
+      {
+        "id": "L2",
+        "check": "DST makes local timestamps repeat; store UTC, convert only at export (ADR-001)",
+        "mark": "pass",
+        "note": ""
+      },
+      {
+        "id": "L3",
+        "check": "Backfill ran at 3x estimate; broker throttles near 5k msg/s; plan backfill from a measured test, not an estimate",
+        "mark": "pass",
+        "note": ""
+      },
+      {
+        "id": "L4",
+        "check": "Customer sandbox access can take weeks; request it at kickoff, not after design sign-off",
+        "mark": "pass",
+        "note": ""
+      },
+      {
+        "id": "L5",
+        "check": "Event Hubs chosen over self-run Kafka because no Kafka ops skills and customer on Azure (ADR-002)",
+        "mark": "pass",
+        "note": ""
+      },
+      {
+        "id": "L6",
+        "check": "Firmware v2.3 malformed timestamps: reject and log; external dependency delayed go-live (risk)",
+        "mark": "pass",
+        "note": ""
+      },
+      {
+        "id": "L7",
+        "check": "Error logs captured raw request bodies with customer data; mask before logging (risk)",
+        "mark": "pass",
+        "note": ""
+      },
+      {
+        "id": "L8",
+        "check": "Go-live gate: 7-day shadow run with under 0.1% daily mismatch",
+        "mark": "pass",
+        "note": "brief Decisions line, no card"
+      }
+    ]
+  }
+}
