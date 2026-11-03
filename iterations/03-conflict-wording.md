@@ -7,7 +7,7 @@
 
 ## What changed
 
-Rule commit [3ce478a](https://github.com/eraserhead21/claude-org-poc/commit/3ce478a), added to `card-extractor.md`:
+Rule commit [3ce478a](https://github.com/eraserhead21/company-brain-poc/commit/3ce478a), added to `card-extractor.md`:
 
 - "List a conflict only if acting on the wrong claim would change a decision, a design, an owner or a date someone plans against. Two wordings of when a past event happened are not a conflict. A planned date that a later source makes impossible, with no new date given, is a supersession."
 - "When redaction turns different people into the same role, label each person with a letter (Engineer A, Engineer B)."

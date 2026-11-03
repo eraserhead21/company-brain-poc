@@ -1,4 +1,4 @@
-# Claude Org POC: rules for this repo
+# Company Brain POC: rules for this repo
 
 This repo simulates one team project ("Project Alpha") and the org knowledge layer
 on a single Claude Pro account. The design is summarised in README.md.

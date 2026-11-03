@@ -3,7 +3,7 @@
 - **Date:** 2026-11-03
 - **Question:** do the round 3 rules work on documents nobody tuned them against?
 - **Run:** normal delta capture (PR #13). Read only what changed after the round 3 cursor.
-- **Rules:** frozen at [3ce478a](https://github.com/eraserhead21/claude-org-poc/commit/3ce478a). No rule change in this round.
+- **Rules:** frozen at [3ce478a](https://github.com/eraserhead21/company-brain-poc/commit/3ce478a). No rule change in this round.
 - **Score records:** `tests/results/r4-holdout-2026-11-03.json` (new key), `tests/results/r4-regression-2026-11-03.json` (original key).
 
 ## How the held-out test was built

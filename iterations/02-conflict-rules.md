@@ -2,18 +2,18 @@
 
 - **Date:** 2026-11-03
 - **Run:** full rebuild. Old cards and brief removed, cursor reset to 2026-01-01, every source re-read (PR #10).
-- **Output scored:** commit [7ef0ddd](https://github.com/eraserhead21/claude-org-poc/tree/7ef0ddd): 9 cards and the brief.
+- **Output scored:** commit [7ef0ddd](https://github.com/eraserhead21/company-brain-poc/tree/7ef0ddd): 9 cards and the brief.
 - **Score record:** `tests/results/r2-2026-11-03.json`
 
 ## What changed
 
-1. **Brief format** ([741e4e7](https://github.com/eraserhead21/claude-org-poc/commit/741e4e7)): fixed sections, including Open conflicts and Supersessions. Every fact carries its source in brackets.
-2. **Conflict and lesson rules** ([7ef0ddd](https://github.com/eraserhead21/claude-org-poc/commit/7ef0ddd)), added to `card-extractor.md`:
+1. **Brief format** ([741e4e7](https://github.com/eraserhead21/company-brain-poc/commit/741e4e7)): fixed sections, including Open conflicts and Supersessions. Every fact carries its source in brackets.
+2. **Conflict and lesson rules** ([7ef0ddd](https://github.com/eraserhead21/company-brain-poc/commit/7ef0ddd)), added to `card-extractor.md`:
    - Before: "Rewrite `brief.md` ... keep what is still true, update what changed."
    - After, added: "Before you write it, list every claim that two sources state differently (a number, a date, a tool, an owner). A later source that states a change ("moved to", "now", "replaces", "agreed") is a supersession. Anything else is an open conflict. A later ADR that picks a different option than an earlier design doc is a conflict unless the ADR says it replaces the doc."
    - Added: "A lesson stated in meeting notes ... is a learning card, even if it is small."
    - Added: "Before you return, check that no fact in the brief contradicts a card."
-3. **Citations** ([e88f67d](https://github.com/eraserhead21/claude-org-poc/commit/e88f67d)): Drive docs exported to `sources/`; cards and brief cite those paths, so links work in the public repo.
+3. **Citations** ([e88f67d](https://github.com/eraserhead21/company-brain-poc/commit/e88f67d)): Drive docs exported to `sources/`; cards and brief cite those paths, so links work in the public repo.
 
 ## Score
 
