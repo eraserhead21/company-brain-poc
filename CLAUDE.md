@@ -31,7 +31,7 @@ say that you did.
   title to `sources/` path).
 - `sources/`: Markdown exports of the Drive docs, so citations resolve in the
   public repo. Capture reads Drive, not this folder, and cites these paths.
-- `tests/answers/`: answer keys for the tests. Gitignored.
+- `tests/answers/`: answer keys for the tests, published after the test rounds.
 - `tests/results/`: one scored record per capture round (`score.py --save`).
 - **Never read anything under `tests/` during capture or lint.** Reading it
   invalidates the tests.

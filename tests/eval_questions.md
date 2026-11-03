@@ -7,7 +7,7 @@ Ask each question twice, in two fresh Claude Code sessions in this repo:
   read brief.md or learnings/."
 
 After each run, open `/usage` and record the usage share and the answer.
-Score answers against `tests/answers/eval_answers.md` (local only).
+Score answers against `tests/answers/eval_answers.md`.
 
 Pass: run A uses at least 50% less than run B, and run A gets at least 9 of 10
 right.
