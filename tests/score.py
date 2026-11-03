@@ -76,6 +76,8 @@ for s in KEY.get("supersessions", []):
     items.append((s["id"], f"{s['topic']}: {s['old']} -> {s['new']} -> {s['expected']}"))
 for l in KEY.get("expected_learnings", []):
     items.append((l["id"], l["lesson"]))
+for n in KEY.get("negatives", []):
+    items.append((n["id"], f"{n['topic']}: {n['a']} vs {n['b']} -> {n['expected']}"))
 
 marks = {}
 if args.save:
