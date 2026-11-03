@@ -15,7 +15,10 @@ Never open anything under `tests/answers/`.
 
 ## Steps
 
-1. Read `poc-config.json` for `drive_folder_id` and `repo`.
+1. Read `poc-config.json` for `drive_folder_id`, `repo` and `drive_sources`.
+   `drive_sources` maps each Drive doc title to its exported copy in `sources/`.
+   Read Drive, but cite a Drive doc by its `sources/` path, never by its Drive
+   link, so every citation resolves in the public repo. Do not read `sources/`.
 2. Read `log.md`. Take the `cursor=` value from the **last** line. Call it CURSOR.
 3. Record the run start time: `date -u +%Y-%m-%dT%H:%M:%SZ`. Call it NOW.
 4. **Drive, changed files only.** Call `search_files` with
@@ -46,7 +49,8 @@ Never open anything under `tests/answers/`.
      names from the Sources section, for example
      `Go-live 28 Nov [Status 09-30]` or `Event Hubs [ADR-002]`.
      A fact with no source you read does not go in the brief.
-   - The Sources section maps each short name to its title and link.
+   - The Sources section maps each short name to its title and link. For a
+     Drive doc the link is its `sources/` path.
 9. Do not edit `log.md`. The caller writes the log line.
 
 ## Return

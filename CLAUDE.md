@@ -28,7 +28,10 @@ say that you did.
   `capture/` branch** and opens a PR. Merging the PR is the approval. `main`
   never holds an unapproved card.
 - `lint-report.md`: written by `/lint-wiki`.
-- `poc-config.json`: Drive folder ID and repo name.
+- `poc-config.json`: Drive folder ID, repo name, and `drive_sources` (Drive
+  title to `sources/` path).
+- `sources/`: Markdown exports of the Drive docs, so citations resolve in the
+  public repo. Capture reads Drive, not this folder, and cites these paths.
 - `tests/answers/`: answer keys for the tests. Gitignored. **Never read this
   folder during capture or lint.** Reading it invalidates the tests.
 
@@ -46,7 +49,7 @@ date: <YYYY-MM-DD of the event, not of capture>
 owner_role: PM | TL | Engineer | Team
 confidence: high | medium | low
 sensitivity: internal
-sources: [<Drive link, issue URL, PR URL or repo path>]
+sources: [<sources/ path for a Drive doc, issue URL, PR URL or repo path>]
 supersedes: <card id, or none>
 ---
 **Context:** <one or two lines>

@@ -2,5 +2,17 @@
   "drive_root_folder_id": "1u--Lgia82btdUWcfr5cQqnI8ickaKV5r",
   "drive_folder_id": "1rOYjrL-p17tY_QRdOsfXUK1JX5SKeXXH",
   "drive_folder_url": "https://drive.google.com/drive/folders/1rOYjrL-p17tY_QRdOsfXUK1JX5SKeXXH",
-  "repo": "eraserhead21/claude-org-poc"
+  "repo": "eraserhead21/claude-org-poc",
+  "drive_sources": {
+    "Alpha - Project Charter": "sources/alpha-project-charter.md",
+    "Alpha - Solution Design v1": "sources/alpha-solution-design-v1.md",
+    "Alpha - Meeting Notes 2026-09-15 Kickoff": "sources/alpha-meeting-notes-2026-09-15-kickoff.md",
+    "Alpha - Meeting Notes 2026-09-29 Weekly": "sources/alpha-meeting-notes-2026-09-29-weekly.md",
+    "Alpha - Status Update 2026-09-22": "sources/alpha-status-update-2026-09-22.md",
+    "Alpha - Status Update 2026-09-30": "sources/alpha-status-update-2026-09-30.md",
+    "Alpha - Status Update 2026-10-01": "sources/alpha-status-update-2026-10-01.md",
+    "Alpha - Risk Register": "sources/alpha-risk-register.md",
+    "Alpha - Team Channel Log (September)": "sources/alpha-team-channel-log-september.md",
+    "Alpha - Onboarding Notes": "sources/alpha-onboarding-notes.md"
+  }
 }
