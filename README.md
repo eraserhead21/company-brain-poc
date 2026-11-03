@@ -1,50 +1,95 @@
-# Claude Org POC
+# Company Brain POC
 
-A one-person simulation of the org design at
-https://claude.ai/artifact/UfRHRySzJNREd3tTwyD25s, on Claude Pro.
-Rules for Claude live in `CLAUDE.md`.
+Project knowledge usually lives in meeting notes, chat, tickets and design docs. Nobody reads all of it, and nobody wants personal or commercial details from it spread across the company.
 
-## What runs where
+This POC is a small working version of a fix. A scheduled Claude job reads one project's sources and writes two things:
 
-| Piece | Where | Proves |
-|---|---|---|
-| Project files (9 docs) | Google Drive `Claude Org POC/Project Alpha` | Layer 2 sources |
-| Code, ADRs, Issues, PRs | this repo on GitHub | Layer 2 sources, Zoho stand-in |
-| `/capture` skill + `card-extractor` (Haiku) | Claude Code in this repo | Layer 3 capture, cost rules |
-| Capture PR, merge = approve | GitHub | Layer 3 review gate |
-| `/lint-wiki` skill + `wiki-linter` (Haiku) | Claude Code | Layer 3 upkeep |
-| Project "Alpha" | claude.ai | Layer 2 team workspace, brief-first |
-| Project "Ask the Org" | claude.ai | Enterprise search stand-in |
-| `tests/` | local | Redaction, conflicts, cost |
+- **A project brief:** one page of current status, decisions, risks, open conflicts and superseded facts. Every fact carries its source.
+- **Learning cards:** short, reusable lessons ("request customer sandbox access at kickoff") that the rest of the company can search.
 
-## Runbook
+Nothing reaches the shared wiki until a person approves it. Personal data, secrets and commercial terms are removed before anyone sees the output.
 
-### One time, by hand in claude.ai
-1. Create Project **Alpha**. Paste `project-instructions/alpha-project.md` into
-   Instructions. Add knowledge: Google Drive > the 9 files in `Project Alpha`;
-   GitHub > this repo, files `brief.md` and folder `learnings/approved/`.
-2. Create Project **Ask the Org**. Paste `project-instructions/ask-the-org.md`.
-   Add knowledge: GitHub > this repo, folder `learnings/approved/` only.
+Built by Abhishek Katta with Claude Code, on a single Claude Pro account. Portfolio: [abhishekkatta.netlify.app](https://abhishekkatta.netlify.app).
 
-### Each cycle, in Claude Code (VS Code) in this folder
-1. `/capture`: opens a PR with new cards and a fresh brief.
-2. Review the PR on GitHub. Merge it to approve. Close it to reject.
-3. `git pull`, then `python tests/score.py`: redaction and name leaks.
-   Use the full Python path on this machine.
-4. `/lint-wiki`: writes `lint-report.md`.
-5. In claude.ai, click **Sync now** on both Projects.
+## How it works
 
-### Tests
-- **Delta test:** after the first capture, add one new doc to the Drive folder
-  and run `/capture` again. Pass: the PR body shows `drive_files_read: 1`.
-- **Redaction test:** `tests/score.py`. Pass: 20/20 caught, 0 names.
-- **Conflict test:** tick C1 to C3 and S1 printed by `tests/score.py` against
-  `brief.md`. Pass: 3/3 conflicts flagged, S1 recorded as a supersession.
-- **Lint test:** `/lint-wiki`. Pass: every conflict the brief missed shows up.
-- **Cost test:** `tests/eval_questions.md`.
-- **Haiku test:** re-run one capture with the subagent set to `model: sonnet`
-  on a throwaway branch, and compare the cards.
+```text
+Project sources                     Capture job                      Human gate            Company
+(Drive docs, GitHub issues,  --->   Haiku sub-agent reads only  --->  Pull request:  --->  Wiki of approved
+ PRs, ADRs, code)                   what changed since the last       merge = approve      cards, searchable
+                                    run, redacts, writes cards                             through a claude.ai
+                                    and the brief; a regex check                           Project
+                                    runs as a backstop
+```
 
-## Not simulated here
-Multi-user roles, Teams, Zoho, OneDrive sync, SSO/SCIM, enterprise search
-permissions, org spend caps. See the "Cannot simulate" table in the plan.
+| Org piece | Stand-in here |
+|---|---|
+| Project file share | Google Drive folder (exported copies in [`sources/`](sources/)) |
+| Team chat | A Drive doc holding a channel log |
+| Issue tracker | GitHub Issues on this repo |
+| Team repo | This repo: [`src/`](src/), [`docs/`](docs/), [`decisions/`](decisions/) |
+| Company wiki | [`learnings/approved/`](learnings/approved/) |
+| Company search | A claude.ai Project whose only knowledge is the approved cards |
+
+The design choices that matter:
+
+- **Rules live in files, not in prompts.** [`CLAUDE.md`](CLAUDE.md) holds the card format, the 7 redaction rules and the conflict rule. The capture steps are in [`.claude/agents/card-extractor.md`](.claude/agents/card-extractor.md).
+- **Cheap model, narrow job.** Extraction runs on Haiku and reads only items changed since a cursor kept in [`log.md`](log.md).
+- **Disagreements are shown, not resolved.** When two sources disagree and neither replaces the other, the brief lists both under "Open conflicts". A later source that states a change is recorded as a supersession instead.
+- **Approval is a merge.** Capture opens a PR. `main` never holds an unapproved card.
+
+## How it is tested
+
+The project is fictional ("Project Alpha", a smart-meter streaming migration). Its sources are seeded with things the job must handle:
+
+- **Redaction:** 20 planted confidential values (phone, home address, health, pay, performance, date of birth, passwords, tokens, customer account, contract value, margin, vendor-switch talk, invoice dispute) and 11 people's names.
+- **Judgement:** 3 conflicts between sources, 1 supersession and 8 lessons a good reader should find.
+- **Answer key:** [`tests/answers/`](tests/answers/). The capture job is told never to read `tests/`.
+- **Held-out set:** 2 more Drive docs and 1 issue with new kinds of planted values, a separate answer key written before any run saw them, and one trap (the same date written two ways).
+
+[`tests/score.py`](tests/score.py) checks redaction and names automatically and lists the judgement checks for a person to mark. Each round's marks and scores are saved in [`tests/results/`](tests/results/).
+
+## Results
+
+| Round | Change | Redaction | Names leaked | Judgement checks |
+|---|---|---|---|---|
+| 1 | Baseline | 20/20 | 0 | 8/12 |
+| 2 | Conflict and lesson rules | 20/20 | 0 | 11/12 |
+| 3 | Conflict wording, after reviewer feedback | 20/20 | 0 | 11/12, noise removed |
+| 4 | **Held-out set, rules frozen** | **6/6** | **0** | **7/7** |
+
+Each round has a page in [`iterations/`](iterations/) with what failed, the exact rule change, the score after and the cost. Round 3 is the clearest example: a reviewer said the conflict list was unclear, and the page shows the list before and after the rule change.
+
+## Known gaps
+
+- **One conflict is still missed (C1).** A meeting note says "Agreed: retention is 30 days"; the design doc says 90. The rule reads "agreed" as a change, so the brief records a supersession where the key expects an open conflict.
+- **The one-page brief loses history.** The 600-word cap pushed older superseded dates out of the brief in round 4. The cards still hold them.
+- **Rounds 2 and 3 were tuned against the test they are scored on.** Round 4 is the only held-out result, and its documents were written by the same person who wrote the rules.
+- **Judgement checks are marked by a person,** not by a script.
+- **Cost doubled** from round 1 to round 2 as the rules grew (about 59k to 115k Haiku tokens for a full rebuild; 93k for a small delta).
+- **The cost test is not run yet.** [`tests/eval_questions.md`](tests/eval_questions.md) compares answering from the brief with answering from raw sources.
+- **Single-user simulation.** No real roles, SSO, permission-aware search, Microsoft 365 or ticketing system. The stand-ins above show the shape, not the scale.
+
+## Repo map
+
+| Path | What it is |
+|---|---|
+| [`brief.md`](brief.md) | The current project brief |
+| [`learnings/approved/`](learnings/approved/) | Approved learning cards |
+| [`sources/`](sources/) | Exported copies of the Drive docs (fictional, with planted values) |
+| [`iterations/`](iterations/) | One page per improvement round |
+| [`tests/`](tests/) | Answer keys, scorer, saved results |
+| [`scripts/redaction_check.py`](scripts/redaction_check.py) | Regex backstop for the redaction step |
+| [`.claude/`](.claude/) | The capture and lint skills and their Haiku sub-agents |
+| [`project-instructions/`](project-instructions/) | Instructions for the two claude.ai Projects |
+| [`log.md`](log.md) | Append-only run log with counts, cost and the capture cursor |
+
+## Run it
+
+Needs Claude Code, the GitHub CLI, Python 3 and the Google Drive connector, plus your own Drive folder (set its id in [`poc-config.json`](poc-config.json)).
+
+1. `/capture` in Claude Code in this folder. It opens a PR with new cards and a fresh brief.
+2. Review the PR. Merge it to approve; close it to reject.
+3. `python tests/score.py`, then mark the judgement checks it prints. Add `--save <run>` to keep the record.
+4. `/lint-wiki` writes [`lint-report.md`](lint-report.md): contradictions, stale claims, orphan cards, duplicates.
+5. Optional: create the claude.ai Projects "Alpha" and "Ask the Org" from [`project-instructions/`](project-instructions/) to ask questions over the brief and the cards.

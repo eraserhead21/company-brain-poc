@@ -2,13 +2,13 @@
 
 - **Date:** 2026-10-01
 - **Runs:** one full capture (PR #8), then one delta capture (PR #9). See `log.md`.
-- **Output scored:** commit [741e4e7](https://github.com/eraserhead21/claude-org-poc/tree/741e4e7): 8 cards and the brief.
+- **Output scored:** commit [741e4e7](https://github.com/eraserhead21/company-brain-poc/tree/741e4e7): 8 cards and the brief.
 - **Score record:** `tests/results/r1-2026-10-01.json`
 
 ## Rules in force
 
-- Extractor and capture skill from the scaffold, commit [7d69a91](https://github.com/eraserhead21/claude-org-poc/commit/7d69a91).
-- Delta fixes during the day: GitHub timestamp cursor and skip own capture PRs ([d6c2dba](https://github.com/eraserhead21/claude-org-poc/commit/d6c2dba)); client-side Drive date check ([0adb64e](https://github.com/eraserhead21/claude-org-poc/commit/0adb64e)).
+- Extractor and capture skill from the scaffold, commit [7d69a91](https://github.com/eraserhead21/company-brain-poc/commit/7d69a91).
+- Delta fixes during the day: GitHub timestamp cursor and skip own capture PRs ([d6c2dba](https://github.com/eraserhead21/company-brain-poc/commit/d6c2dba)); client-side Drive date check ([0adb64e](https://github.com/eraserhead21/company-brain-poc/commit/0adb64e)).
 - `CLAUDE.md` already said: "When two sources disagree and neither supersedes the other, do not pick one." The extractor steps did not ask for an Open conflicts section.
 
 ## Score
@@ -28,7 +28,7 @@
 
 ## Human review
 
-- During PR review, three cards were edited by hand on GitHub before merge: [a0eeb1b](https://github.com/eraserhead21/claude-org-poc/commit/a0eeb1b), [aeace99](https://github.com/eraserhead21/claude-org-poc/commit/aeace99), [457099c](https://github.com/eraserhead21/claude-org-poc/commit/457099c). Merging the PR is the approval step.
+- During PR review, three cards were edited by hand on GitHub before merge: [a0eeb1b](https://github.com/eraserhead21/company-brain-poc/commit/a0eeb1b), [aeace99](https://github.com/eraserhead21/company-brain-poc/commit/aeace99), [457099c](https://github.com/eraserhead21/company-brain-poc/commit/457099c). Merging the PR is the approval step.
 
 ## Cost
 

@@ -1,8 +1,7 @@
-# Claude Org POC: rules for this repo
+# Company Brain POC: rules for this repo
 
 This repo simulates one team project ("Project Alpha") and the org knowledge layer
-on a single Claude Pro account. It maps to the org design at
-https://claude.ai/artifact/UfRHRySzJNREd3tTwyD25s.
+on a single Claude Pro account. The design is summarised in README.md.
 
 | Org piece | Stand-in here |
 |---|---|
@@ -32,7 +31,7 @@ say that you did.
   title to `sources/` path).
 - `sources/`: Markdown exports of the Drive docs, so citations resolve in the
   public repo. Capture reads Drive, not this folder, and cites these paths.
-- `tests/answers/`: answer keys for the tests. Gitignored.
+- `tests/answers/`: answer keys for the tests, published after the test rounds.
 - `tests/results/`: one scored record per capture round (`score.py --save`).
 - **Never read anything under `tests/` during capture or lint.** Reading it
   invalidates the tests.
