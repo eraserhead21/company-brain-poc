@@ -1,0 +1,7 @@
+HC1 pass open conflict: 5 minutes [Issue 12] vs 15 minutes [Weekly 10-13]
+HC2 pass open conflict: Tech Lead [Issue 12] vs PM [Status 10-15]
+HS1 pass supersession 17 to 19 Nov; Key dates show 19 Nov
+HS2 pass supersession 20 to 27 Oct; Key dates show 27 Oct
+HL1 pass card 2026-10-13-ask-customer-change-freeze-at-kickoff
+HL2 pass card 2026-10-13-align-shadow-comparison-day-boundary
+HN1 pass "started Monday" vs "started 12 October" not listed as a conflict
