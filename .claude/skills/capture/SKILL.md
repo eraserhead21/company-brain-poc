@@ -1,7 +1,7 @@
 ---
 name: capture
 description: Run the Project Alpha capture job. Reads only sources changed since the last run (Drive folder, GitHub issues, PRs, repo docs) through the Haiku card-extractor subagent, writes redacted learning cards and a fresh brief.md on a capture branch, then opens a PR for human approval. Use when the user says capture, run capture, or refresh the brief.
-allowed-tools: Bash(git *) Bash(gh *) Bash("/c/Program Files/GitHub CLI/gh.exe" *) Bash("/c/Users/abhis/AppData/Local/Programs/Python/Python313/python.exe" *) Bash(date *)
+allowed-tools: Bash(git *) Bash(gh *) Bash("/c/Program Files/GitHub CLI/gh.exe" *) Bash(python *) Bash(date *)
 ---
 
 Keep this session's own reading small. The subagent does the reading.
@@ -14,8 +14,8 @@ Keep this session's own reading small. The subagent does the reading.
 3. Run the `card-extractor` subagent with this task:
    "Run one capture for Project Alpha. Follow your steps exactly."
 4. Run the redaction check:
-   `"/c/Users/abhis/AppData/Local/Programs/Python/Python313/python.exe" scripts/redaction_check.py learnings/approved brief.md`
-   Bare `python` hits the Microsoft Store stub on this machine. Use the full path.
+   `python scripts/redaction_check.py learnings/approved brief.md`
+   On Windows, if bare `python` opens the Microsoft Store stub, use the full path to `python.exe`.
    If it reports hits in a new card or the brief, remove the hit text by Edit,
    then run the check again. Count the hits fixed.
 5. Append one line to `log.md`:

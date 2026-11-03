@@ -1,8 +1,10 @@
 # Company Brain POC
 
+**Held-out result, rules frozen:** 6/6 planted confidential values removed, 0 names leaked, 7/7 judgement checks. See [Results](#results).
+
 Project knowledge usually lives in meeting notes, chat, tickets and design docs. Nobody reads all of it, and nobody wants personal or commercial details from it spread across the company.
 
-This POC is a small working version of a fix. A scheduled Claude job reads one project's sources and writes two things:
+This POC is a small working version of a fix. A Claude Code job, run on demand, reads one project's sources and writes two things:
 
 - **A project brief:** one page of current status, decisions, risks, open conflicts and superseded facts. Every fact carries its source.
 - **Learning cards:** short, reusable lessons ("request customer sandbox access at kickoff") that the rest of the company can search.
@@ -62,7 +64,7 @@ Each round has a page in [`iterations/`](iterations/) with what failed, the exac
 
 ## Known gaps
 
-- **One conflict is still missed (C1).** A meeting note says "Agreed: retention is 30 days"; the design doc says 90. The rule reads "agreed" as a change, so the brief records a supersession where the key expects an open conflict.
+- **One conflict in the main test set is still missed (C1).** C1 is not in the held-out set, which is why round 4 shows 7/7. A meeting note says "Agreed: retention is 30 days"; the design doc says 90. The rule reads "agreed" as a change, so the brief records a supersession where the key expects an open conflict.
 - **The one-page brief loses history.** The 600-word cap pushed older superseded dates out of the brief in round 4. The cards still hold them.
 - **Rounds 2 and 3 were tuned against the test they are scored on.** Round 4 is the only held-out result, and its documents were written by the same person who wrote the rules.
 - **Judgement checks are marked by a person,** not by a script.
