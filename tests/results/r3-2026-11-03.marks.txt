@@ -1,0 +1,12 @@
+C1 fail still recorded as a supersession (known gap: "agreed" is a change word)
+C2 pass
+C3 pass flagged as "Engineer A" vs "Engineer B", readable
+S1 pass
+L1 pass
+L2 pass
+L3 pass
+L4 pass
+L5 pass
+L6 pass
+L7 pass
+L8 pass card on the shadow gate scope

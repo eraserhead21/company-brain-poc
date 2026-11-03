@@ -40,8 +40,29 @@ Never open anything under `tests/` (answer keys and scored results).
 7. Write one card per reusable learning, decision or risk, in
    `learnings/approved/`. Apply every redaction rule. Prefer fewer, sharper
    cards. A status update that only restates a plan is not a learning.
+   A lesson stated in meeting notes (something the team asked to do earlier
+   next time) is a learning card, even if it is small.
 8. Rewrite `brief.md` (max 600 words). Merge the old brief with what changed:
    keep what is still true, update what changed.
+   - **Before you write it, list every claim that two sources state
+     differently** (a number, a date, a tool, an owner). A later source that
+     states a change ("moved to", "now", "replaces", "agreed") is a
+     supersession. Anything else is an open conflict. A later ADR that picks a
+     different option than an earlier design doc is a conflict unless the ADR
+     says it replaces the doc; if it does, record a supersession and call the
+     doc stale. Every open conflict goes under Open conflicts with both claims
+     and both sources.
+   - **List a conflict only if acting on the wrong claim would change a
+     decision, a design, an owner or a date someone plans against.** Two
+     wordings of when a past event happened ("last week" versus "this week")
+     are not a conflict. A planned date that a later source makes impossible,
+     with no new date given, is a supersession: write "<old date> no longer
+     holds; no new date".
+   - **When redaction turns different people into the same role, label each
+     person with a letter** (Engineer A, Engineer B) and use the same label for
+     the same person everywhere in the brief and cards, so a reader can tell
+     the two claims apart.
+   - Before you return, check that no fact in the brief contradicts a card.
    - **Line 3 is always** `Compiled: <NOW>, cursor <NOW>, by capture`.
    - Sections, in order: Status, Key dates, Decisions, Open risks, Open
      conflicts, Supersessions, Sources. Write "None." under an empty section.

@@ -1,0 +1,12 @@
+C1 fail known gap, unchanged
+C2 pass
+C3 pass Engineer A vs Engineer B
+S1 pass brief shows 28 Nov; the brief's Supersessions line was trimmed to fit 600 words, the go-live card keeps 14 to 28 Nov
+L1 pass
+L2 pass
+L3 pass
+L4 pass
+L5 pass
+L6 pass
+L7 pass
+L8 pass
