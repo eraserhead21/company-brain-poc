@@ -13,6 +13,12 @@ Nothing reaches the shared wiki until a person approves it. Personal data, secre
 
 Built by Abhishek Katta with Claude Code, on a single Claude Pro account. Portfolio: [abhishekkatta.netlify.app](https://abhishekkatta.netlify.app).
 
+## Why I built this
+
+- The question was how one Claude setup could serve a real project team and the wider organisation: team-level shared context, plus an org-wide knowledge system anyone can query.
+- The first design read every source on every question. That is expensive, so the design became "summarise once, read many": read only what changed, extract with a small model, and answer from the brief before opening raw sources.
+- Before trusting it, I wanted evidence. So the POC plants the failure modes a real rollout fears most (leaked personal data, silently settled disagreements, invented facts) and scores every run.
+
 ## How it works
 
 ```text
@@ -65,6 +71,8 @@ Each round has a page in [`iterations/`](iterations/) with what failed, the exac
 ## Known gaps
 
 - **One conflict in the main test set is still missed (C1).** C1 is not in the held-out set, which is why round 4 shows 7/7. A meeting note says "Agreed: retention is 30 days"; the design doc says 90. The rule reads "agreed" as a change, so the brief records a supersession where the key expects an open conflict.
+- **Invented facts are not scored.** Round 1 invented 4 facts; one passed human review, and the query Project then repeated it with confidence. A spot check of the current output found no unsourced numbers or reasons, but no script tests this yet.
+- **Redaction protects the wiki, not the raw sources.** A Project that reads the Drive docs directly answered one question with a team member's leave dates. Query access to raw sources needs its own controls.
 - **The one-page brief loses history.** The 600-word cap pushed older superseded dates out of the brief in round 4. The cards still hold them.
 - **Rounds 2 and 3 were tuned against the test they are scored on.** Round 4 is the only held-out result, and its documents were written by the same person who wrote the rules.
 - **Judgement checks are marked by a person,** not by a script.

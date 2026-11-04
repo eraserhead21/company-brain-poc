@@ -26,9 +26,17 @@
 - **C3 on-call owner:** not mentioned at all.
 - **L4 sandbox access:** the kickoff lesson ("request it at kickoff") had no card.
 
-## Human review
+## Invented facts (not scored by the answer key)
 
-- During PR review, three cards were edited by hand on GitHub before merge: [a0eeb1b](https://github.com/eraserhead21/company-brain-poc/commit/a0eeb1b), [aeace99](https://github.com/eraserhead21/company-brain-poc/commit/aeace99), [457099c](https://github.com/eraserhead21/company-brain-poc/commit/457099c). Merging the PR is the approval step.
+- **4 in total across the two runs.** The full capture wrote "delays go-live by ~6 weeks" (the real slip was 2 weeks) and an unsourced backfill end date. The delta capture wrote a "same-day" response time, although the prompt said not to invent numbers.
+- **3 were fixed in review** before merge: [aeace99](https://github.com/eraserhead21/company-brain-poc/commit/aeace99), [a0eeb1b](https://github.com/eraserhead21/company-brain-poc/commit/a0eeb1b), [457099c](https://github.com/eraserhead21/company-brain-poc/commit/457099c). Merging the PR is the approval step.
+- **1 passed review:** the brief gave "log retention policy" as a reason for the 30-day retention. No source says so. The query Project later repeated it with confidence.
+
+## Bugs found and fixed during the day
+
+- The regex backstop flagged ISO dates as phone numbers. Fixed with a date exclusion.
+- The extractor queried GitHub by day, not by exact time, and would have read its own capture PRs back in. Fixed with a full timestamp and by skipping `capture/` branches ([d6c2dba](https://github.com/eraserhead21/company-brain-poc/commit/d6c2dba)).
+- The Drive connector's "modified after" filter returned 4 unchanged files on the delta run. Fixed by rechecking each file's own timestamp ([0adb64e](https://github.com/eraserhead21/company-brain-poc/commit/0adb64e)). Round 4 confirmed the fix: it dropped 2 unchanged files (`drive_filtered_out=2`).
 
 ## Cost
 
