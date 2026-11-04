@@ -36,7 +36,7 @@
 
 - The regex backstop flagged ISO dates as phone numbers. Fixed with a date exclusion.
 - The extractor queried GitHub by day, not by exact time, and would have read its own capture PRs back in. Fixed with a full timestamp and by skipping `capture/` branches ([d6c2dba](https://github.com/eraserhead21/company-brain-poc/commit/d6c2dba)).
-- The Drive connector's "modified after" filter returned 4 unchanged files on the delta run. Fixed by rechecking each file's own timestamp ([0adb64e](https://github.com/eraserhead21/company-brain-poc/commit/0adb64e)). Rounds 2 and 4 confirmed the fix.
+- The Drive connector's "modified after" filter returned 4 unchanged files on the delta run. Fixed by rechecking each file's own timestamp ([0adb64e](https://github.com/eraserhead21/company-brain-poc/commit/0adb64e)). Round 4 confirmed the fix: it dropped 2 unchanged files (`drive_filtered_out=2`).
 
 ## Cost
 
