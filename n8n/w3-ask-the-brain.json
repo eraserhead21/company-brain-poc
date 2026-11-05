@@ -1,0 +1,144 @@
+{
+  "name": "W3 Ask the brain",
+  "nodes": [
+    {
+      "parameters": {
+        "authentication": "bearerAuth",
+        "path": "w3-ask-the-brain",
+        "instructions": "Answer only from these tools. Cite the card id for every claim. If no approved card covers the question, say \"No approved learning covers this\" and stop. Never guess.\n"
+      },
+      "id": "fa9c08f9-f662-4fd5-bd0e-3ebd12584d6d",
+      "name": "MCP Server Trigger",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2.1,
+      "position": [
+        528,
+        304
+      ],
+      "webhookId": "<REMOVED>",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "<CREDENTIAL_ID>",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Search the company's approved learning cards. Use for any question about project lessons, decisions or risks. Returns up to 3 cards with their id, or says no approved learning covers the question.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "FYdiIV7ZpB6aJIT1",
+          "cachedResultName": "W3a Card search",
+          "cachedResultUrl": "/workflow/FYdiIV7ZpB6aJIT1"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ $fromAI('query', 'The user question in plain words', 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "<DRIVE_FOLDER_ID>",
+      "name": "search_approved_cards",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        528,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Get the current one-page project brief: status, key dates, decisions, open risks, open conflicts and supersessions, each fact with its source.",
+        "url": "https://api.github.com/repos/eraserhead21/company-brain-poc/contents/brief.md?ref=main",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.raw"
+            }
+          ]
+        },
+        "options": {},
+        "optimizeResponse": true,
+        "responseType": "text",
+        "truncateResponse": true,
+        "maxLength": 6000
+      },
+      "id": "3c9d4a05-2937-40cc-8571-57b326ca2b09",
+      "name": "get_brief",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.5,
+      "position": [
+        768,
+        528
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "<CREDENTIAL_ID>",
+          "name": "GitHub account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "search_approved_cards": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_brief": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "VNxRr5zaIXxPgKU9",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "tags": []
+}
