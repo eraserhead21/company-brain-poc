@@ -2,6 +2,8 @@
 
 A company brain captures each team's learnings and shares them with the rest of the company, after a person approves it. People and AI assistants can then ask it questions.
 
+![Project documents pass through redaction and a person's approval. Approved learning cards reach people and AI assistants; pay, phone numbers, passwords and names never reach a card.](assets/company-brain-overview.svg)
+
 For example, a team's meeting notes record that a test run of a new billing system found errors before go-live. This lesson becomes a short learning card that any AI assistant can quote. Sensitive information such as a colleague's pay, mentioned in the same folder, never reaches a card.
 
 I tested my company brain on project documents it had never seen. It identified and removed all 6 fake confidential details, leaked no names and passed 7 of 7 judgement tests marked by a person. For more information, see [Results](#results).
@@ -40,15 +42,7 @@ Built by Abhishek Katta with Claude Code and n8n. Portfolio: [abhishekkatta.netl
 
 ## How it works
 
-```text
-Project documents          Capture job                    Human approval        Company knowledge base
-(Drive docs, GitHub  --->  A small AI model reads   --->  A pull request.  --->  Approved cards that
- issues, design            only what changed,             Merging it means       people and AI
- decisions, code)          removes confidential           "approved".            assistants can search
-                           details, and writes cards
-                           and the brief. A pattern
-                           check catches what it misses.
-```
+![Five steps: collect documents, draft cards with Claude Haiku, redact confidential details, a person approves the pull request, then people and AI assistants ask questions.](assets/how-it-works.svg)
 
 The capture job opens a pull request (PR) on GitHub to propose a change for review. A person merges it to accept the change.
 
