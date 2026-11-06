@@ -2,15 +2,7 @@
 
 A company brain captures each team's learnings and shares them with the rest of the company, after a person approves it. People and AI assistants can then ask it questions.
 
-```mermaid
-flowchart LR
-    docs["Project documents<br/>notes, chat, tickets, designs"] --> redact["Redaction<br/>removes personal and<br/>commercial details"]
-    redact -- "lessons" --> approve["A person<br/>approves"]
-    redact -. "pay, phone numbers,<br/>passwords, names" .-> stop["Removed<br/>never reaches a card"]
-    approve --> brain[("Company brain<br/>approved cards only")]
-    brain --> people["People"]
-    brain --> agents["AI assistants"]
-```
+![Project documents pass through redaction and a person's approval. Approved learning cards reach people and AI assistants; pay, phone numbers, passwords and names never reach a card.](assets/company-brain-overview.svg)
 
 For example, a team's meeting notes record that a test run of a new billing system found errors before go-live. This lesson becomes a short learning card that any AI assistant can quote. Sensitive information such as a colleague's pay, mentioned in the same folder, never reaches a card.
 
@@ -50,38 +42,7 @@ Built by Abhishek Katta with Claude Code and n8n. Portfolio: [abhishekkatta.netl
 
 ## How it works
 
-```mermaid
-flowchart LR
-    subgraph sources["1. Project sources"]
-        direction TB
-        drive["Drive documents"]
-        issues["GitHub issues"]
-        adrs["Design decisions"]
-        code["Code"]
-    end
-    subgraph capture["2. Capture job"]
-        direction TB
-        read["Claude Haiku reads<br/>only what changed"] --> write["Removes confidential details,<br/>writes cards and the brief"]
-        write --> check["Pattern check<br/>catches what it missed"]
-    end
-    subgraph gate["3. Human approval"]
-        direction TB
-        pr["Pull request"] --> merge["A person merges it<br/>= approved"]
-    end
-    subgraph kb["4. Knowledge base"]
-        main[("Approved cards<br/>and brief on main")]
-    end
-    subgraph ask["5. Ask"]
-        direction TB
-        project["claude.ai Project"]
-        mcp["Any AI assistant<br/>over MCP (n8n W3)"]
-    end
-    sources --> read
-    check --> pr
-    merge --> main
-    main --> project
-    main --> mcp
-```
+![Five steps: collect documents, draft cards with Claude Haiku, redact confidential details, a person approves the pull request, then people and AI assistants ask questions.](assets/how-it-works.svg)
 
 The capture job opens a pull request (PR) on GitHub to propose a change for review. A person merges it to accept the change.
 
