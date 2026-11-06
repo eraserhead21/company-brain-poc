@@ -1,38 +1,40 @@
 # Company Brain POC
 
-A company brain collects what a project team learns and shares it with the rest of the company, but only after a person approves it. People and AI assistants can then ask it questions.
+A company brain captures each team's learnings and shares it with the rest of the company, after a person approves it. People and AI assistants can then ask it questions.
 
-For example, a team's meeting notes record that a test run of a new billing system found errors before go-live. That lesson becomes a short learning card that any AI assistant can quote. A colleague's pay, mentioned in the same folder, never reaches a card.
+For example, a team's meeting notes record that a test run of a new billing system found errors before go-live. This lesson becomes a short learning card that any AI assistant can quote. Sensitive information such as a colleague's pay, mentioned in the same folder, never reaches a card.
 
-I tested it on project documents it had never seen, with its rules locked. It removed all 6 fake confidential details hidden in them, leaked no names and passed 7 of 7 judgement tests marked by a person. For more information, see [Results](#results).
+I tested my company brain on project documents it has never seen. It identified and removed all 6 fake confidential details, leaked no names and passed 7 of 7 judgement tests marked by a person. For more information, see [Results](#results).
 
 ## Overview
 
 Project knowledge is spread across meeting notes, chat, tickets and design documents. Nobody reads all of it, and nobody wants the personal or commercial details in it spread around the company.
 
-This proof of concept (POC) is a small working version of a fix. It reads one project's documents and writes two things:
+This proof of concept (POC) reads one project's documents and writes two things:
 
 - **A project brief:** one page with the current status, decisions, risks, points where documents disagree, and facts that later documents replaced. Every fact links to its source.
 - **Learning cards:** short lessons another team can reuse, such as asking the customer for access to their test system at the start of a project.
 
-Nothing reaches the shared knowledge base until a person approves it. Personal data, passwords and commercial terms are removed first. People and AI assistants can read only approved content.
+Note: Nothing reaches the shared knowledge base until a person approves it. Personal data, passwords and commercial terms are removed first. People and AI assistants can read only approved content.
 
-It runs two ways: as a Claude Code job that you start by hand, or as automated n8n workflows (see [Operated with n8n](#operated-with-n8n)).
+The company brain has two modes of operation: 
+1. A Claude Code job that runs periodically
+2. Automated n8n workflows (see [Operated with n8n](#operated-with-n8n)).
 
 Built by Abhishek Katta with Claude Code and n8n. Portfolio: [abhishekkatta.netlify.app](https://abhishekkatta.netlify.app).
 
 ## Use cases
 
-- Give AI assistants project knowledge they can quote, without exposing personal or commercial data.
-- Reuse lessons across projects: a card written by one team answers the next team's question.
-- Bring a new team member up to speed with one page instead of every meeting note.
-- Show where documents disagree, instead of letting an AI assistant quietly pick one side.
+- **Retrieve sanitised knowledge**: Give AI assistants project knowledge they can quote, without exposing personal or commercial data.
+- **Reuse lessons across projects**: A card written by one team answers the next team's question.
+- **Self-serve onboarding**: A new team member can query the knowledge base to get up to speed, saving productive hours for the team.
+- **Transparent conflict-flagging**: Show where documents disagree, instead of letting an AI assistant quietly pick one side.
 
 ## Why I built this
 
-- I wanted to see how one Claude setup could serve both a project team and the whole company: shared context for the team, and a knowledge base anyone can ask.
-- The first design read every document for every question. That is slow and expensive. So the design became "summarise once, read many": read only what changed since the last run, use a small, cheap AI model to pull out the facts, and answer from the brief before opening the original documents.
-- Before trusting it, I wanted evidence. So I hid the failures a real company fears most in the test documents (leaked personal data, disagreements settled without anyone noticing, made-up facts) and scored every run.
+- **One GenAI Setup**: To see how one Claude setup could serve both a project team and the whole company: shared context for the team, and a knowledge base anyone can ask questions.
+- **Summarize once, read many**: Reading documents for every question is slow and expensive. I designed the brain to read only what changed since the last refresh, use a small, cheap AI model to pull out the facts, and answer from the brief before opening the original documents.
+- **Eval set for trust**: I built evidence by hiding the failures a real company fears most in the test documents such as leaked personal data, disagreements settled without anyone noticing, and made-up facts, and scored every run.
 
 ## How it works
 
@@ -46,7 +48,7 @@ Project documents          Capture job                    Human approval        
                            check catches what it misses.
 ```
 
-A pull request (PR) is GitHub's way to propose a change for review. Merging it accepts the change.
+GitHub raises a pull request (PR) to propose a change for review. A human merges it to accept the change.
 
 | In a real company | In this POC |
 |---|---|
@@ -57,11 +59,11 @@ A pull request (PR) is GitHub's way to propose a change for review. Merging it a
 | Company knowledge base | [`learnings/approved/`](learnings/approved/) |
 | Company search | A claude.ai Project (a Claude workspace limited to chosen files) that knows only the approved cards, or any AI assistant connected through the n8n workflow W3 |
 
-The design choices that matter:
+## Key design choices
 
-- **Rules live in files, not in prompts.** [`CLAUDE.md`](CLAUDE.md) holds the card format, the 7 redaction rules (what to remove) and the rule for disagreements. The capture steps are in [`.claude/agents/card-extractor.md`](.claude/agents/card-extractor.md).
+- **Rules in files, not prompts.** [`CLAUDE.md`](CLAUDE.md) has the card format, the 7 redaction rules (what to remove) and the rule for disagreements. See capture steps in [`.claude/agents/card-extractor.md`](.claude/agents/card-extractor.md).
 - **Small model, narrow job.** Claude Haiku, a small and cheap model, pulls out the facts. It reads only what changed since the last run. [`log.md`](log.md) records where the last run stopped.
-- **Disagreements are shown, not resolved.** When two documents disagree and neither replaces the other, the brief lists both under "Open conflicts". When a later document clearly states a change, the brief records the new fact and marks the old one as replaced.
+- **Show disagreements, do not resolve them.** When two documents disagree and neither replaces the other, the brief lists both under "Open conflicts". When a later document clearly states a change, the brief records the new fact and marks the old one as replaced.
 - **Approval is a merge.** Capture opens a pull request. The `main` branch, the approved version, never holds an unapproved card.
 
 ## Operated with n8n
@@ -94,7 +96,7 @@ The approval step stays the same at any size: an AI assistant reads only what a 
 
 For more information on what this prototype does not prove, see [Known gaps](#known-gaps).
 
-## How it is tested
+## How I tested it
 
 > [!NOTE]
 > All project data in this repo is fictional. The names, contact details, passwords and commercial terms are planted for the redaction test.
