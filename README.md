@@ -46,6 +46,36 @@ The design choices that matter:
 - **Disagreements are shown, not resolved.** When two sources disagree and neither replaces the other, the brief lists both under "Open conflicts". A later source that states a change is recorded as a supersession instead.
 - **Approval is a merge.** Capture opens a PR. `main` never holds an unapproved card.
 
+## Operated with n8n
+
+The same capture and query flow also runs on n8n Cloud, with no Claude Code session. The workflow exports and an import guide are in [`n8n/`](n8n/).
+
+- **W1 Capture:** a new Google Doc in the project folder goes to Claude Haiku with the redaction rules, then through the same regex backstop as [`scripts/redaction_check.py`](scripts/redaction_check.py). A clean card opens a PR. A doc that cannot be written without confidential detail is held and gets no card.
+- **W2 Error alerts:** a production failure in W1, W3 or W3a sends an email with the failed node, the error and a link to the run.
+- **W3 Ask the brain:** an MCP server behind a Bearer token, with two tools: `search_approved_cards` and `get_brief`. Both read only `main`, so an agent sees a card only after a person merges it.
+- **W3a Card search:** the keyword search behind `search_approved_cards`.
+
+W1 writes cards only. The brief is still rebuilt by the Claude Code job.
+
+### Prototype vs at scale
+
+The gate does not change with size: an agent reads only what a person approved. What changes is how sources arrive, how text is checked and how cards are found.
+
+| Step | In this prototype | At scale |
+|---|---|---|
+| Sources | One Drive folder, polled every minute. New docs only; edits to a doc are not captured. | Event triggers from Drive, SharePoint and Slack. An edited doc is captured again by revision. |
+| Redaction | Rules in the Claude prompt, then a regex backstop. The model sees the raw text. | A PII and DLP service (Google Sensitive Data Protection, Microsoft Purview or Presidio) redacts before the model sees the text. The prompt rules and regex stay as extra layers. The model provider is on a zero-data-retention agreement. |
+| Extraction | One card per doc, from the first 60,000 characters. JSON is parsed from the reply text. | Long docs split into chunks, several cards per doc, structured output checked against a schema. A new card is checked for duplicates against existing cards before its PR opens. The eval set runs again on every prompt change. |
+| Held docs | The run stops at a no-op node. Nobody is told. | A review queue that records the reason and messages the doc owner. |
+| Approval | One person merges a GitHub PR. | The same merge, with owners per topic (CODEOWNERS). n8n's send-and-wait approval in Slack or email for reviewers who do not use GitHub. |
+| Retrieval | Keyword overlap. One GitHub call per card for each question. | Cards embedded on merge into a vector store (Qdrant or pgvector). Hybrid keyword and vector search. Answers still cite card ids. |
+| Freshness | Cards never expire. `/lint-wiki` flags stale claims when someone runs it. | Each card has an owner and a review-by date. Lint runs on a schedule, and a merged card that supersedes another retires it. |
+| Access | One shared Bearer token. Every caller sees every approved card. | Per-user sign-in in front of the MCP endpoint. Results filtered by each card's `sensitivity` field. |
+| Operations | An email on failure. One n8n Cloud trial account. | Retry On Fail on API nodes, Slack or on-call alerts, queue-mode workers, Git-backed dev and prod environments, external secrets. |
+| Coverage and audit | Questions exist only in n8n's execution history. Nothing reports on them. | Every question is logged with the caller and the cards cited. Each "No approved learning covers this" is counted, and the count shows where the brain has gaps. |
+
+For what this prototype does not prove, see [Known gaps](#known-gaps).
+
 ## How it is tested
 
 The project is fictional ("Project Alpha", a smart-meter streaming migration). Its sources are seeded with things the job must handle:
@@ -93,6 +123,8 @@ Each round has a page in [`iterations/`](iterations/) with what failed, the exac
 | [`.claude/`](.claude/) | The capture and lint skills and their Haiku sub-agents |
 | [`project-instructions/`](project-instructions/) | Instructions for the two claude.ai Projects |
 | [`log.md`](log.md) | Append-only run log with counts, cost and the capture cursor |
+| [`n8n/`](n8n/) | Exports of the four n8n workflows, with an import guide |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to run, review and extend the POC |
 
 ## Run it
 
