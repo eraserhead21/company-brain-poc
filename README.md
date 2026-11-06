@@ -2,6 +2,16 @@
 
 A company brain captures each team's learnings and shares them with the rest of the company, after a person approves it. People and AI assistants can then ask it questions.
 
+```mermaid
+flowchart LR
+    docs["Project documents<br/>notes, chat, tickets, designs"] --> redact["Redaction<br/>removes personal and<br/>commercial details"]
+    redact -- "lessons" --> approve["A person<br/>approves"]
+    redact -. "pay, phone numbers,<br/>passwords, names" .-> stop["Removed<br/>never reaches a card"]
+    approve --> brain[("Company brain<br/>approved cards only")]
+    brain --> people["People"]
+    brain --> agents["AI assistants"]
+```
+
 For example, a team's meeting notes record that a test run of a new billing system found errors before go-live. This lesson becomes a short learning card that any AI assistant can quote. Sensitive information such as a colleague's pay, mentioned in the same folder, never reaches a card.
 
 I tested my company brain on project documents it had never seen. It identified and removed all 6 fake confidential details, leaked no names and passed 7 of 7 judgement tests marked by a person. For more information, see [Results](#results).
@@ -40,14 +50,37 @@ Built by Abhishek Katta with Claude Code and n8n. Portfolio: [abhishekkatta.netl
 
 ## How it works
 
-```text
-Project documents          Capture job                    Human approval        Company knowledge base
-(Drive docs, GitHub  --->  A small AI model reads   --->  A pull request.  --->  Approved cards that
- issues, design            only what changed,             Merging it means       people and AI
- decisions, code)          removes confidential           "approved".            assistants can search
-                           details, and writes cards
-                           and the brief. A pattern
-                           check catches what it misses.
+```mermaid
+flowchart LR
+    subgraph sources["1. Project sources"]
+        direction TB
+        drive["Drive documents"]
+        issues["GitHub issues"]
+        adrs["Design decisions"]
+        code["Code"]
+    end
+    subgraph capture["2. Capture job"]
+        direction TB
+        read["Claude Haiku reads<br/>only what changed"] --> write["Removes confidential details,<br/>writes cards and the brief"]
+        write --> check["Pattern check<br/>catches what it missed"]
+    end
+    subgraph gate["3. Human approval"]
+        direction TB
+        pr["Pull request"] --> merge["A person merges it<br/>= approved"]
+    end
+    subgraph kb["4. Knowledge base"]
+        main[("Approved cards<br/>and brief on main")]
+    end
+    subgraph ask["5. Ask"]
+        direction TB
+        project["claude.ai Project"]
+        mcp["Any AI assistant<br/>over MCP (n8n W3)"]
+    end
+    sources --> read
+    check --> pr
+    merge --> main
+    main --> project
+    main --> mcp
 ```
 
 The capture job opens a pull request (PR) on GitHub to propose a change for review. A person merges it to accept the change.
