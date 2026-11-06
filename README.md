@@ -1,10 +1,10 @@
 # Company Brain POC
 
-A company brain captures each team's learnings and shares it with the rest of the company, after a person approves it. People and AI assistants can then ask it questions.
+A company brain captures each team's learnings and shares them with the rest of the company, after a person approves it. People and AI assistants can then ask it questions.
 
 For example, a team's meeting notes record that a test run of a new billing system found errors before go-live. This lesson becomes a short learning card that any AI assistant can quote. Sensitive information such as a colleague's pay, mentioned in the same folder, never reaches a card.
 
-I tested my company brain on project documents it has never seen. It identified and removed all 6 fake confidential details, leaked no names and passed 7 of 7 judgement tests marked by a person. For more information, see [Results](#results).
+I tested my company brain on project documents it had never seen. It identified and removed all 6 fake confidential details, leaked no names and passed 7 of 7 judgement tests marked by a person. For more information, see [Results](#results).
 
 ## Overview
 
@@ -15,26 +15,28 @@ This proof of concept (POC) reads one project's documents and writes two things:
 - **A project brief:** one page with the current status, decisions, risks, points where documents disagree, and facts that later documents replaced. Every fact links to its source.
 - **Learning cards:** short lessons another team can reuse, such as asking the customer for access to their test system at the start of a project.
 
-Note: Nothing reaches the shared knowledge base until a person approves it. Personal data, passwords and commercial terms are removed first. People and AI assistants can read only approved content.
+> [!NOTE]
+> Nothing reaches the shared knowledge base until a person approves it. Personal data, passwords and commercial terms are removed first. People and AI assistants can read only approved content.
 
-The company brain has two modes of operation: 
-1. A Claude Code job that runs periodically
+The company brain has two modes of operation:
+
+1. A Claude Code job that you run on demand.
 2. Automated n8n workflows (see [Operated with n8n](#operated-with-n8n)).
 
 Built by Abhishek Katta with Claude Code and n8n. Portfolio: [abhishekkatta.netlify.app](https://abhishekkatta.netlify.app).
 
 ## Use cases
 
-- **Retrieve sanitised knowledge**: Give AI assistants project knowledge they can quote, without exposing personal or commercial data.
-- **Reuse lessons across projects**: A card written by one team answers the next team's question.
-- **Self-serve onboarding**: A new team member can query the knowledge base to get up to speed, saving productive hours for the team.
-- **Transparent conflict-flagging**: Show where documents disagree, instead of letting an AI assistant quietly pick one side.
+- **Retrieve sanitised knowledge:** Give AI assistants project knowledge they can quote, without exposing personal or commercial data.
+- **Reuse lessons across projects:** A card written by one team answers the next team's question.
+- **Self-serve onboarding:** A new team member can query the knowledge base to get up to speed, saving productive hours for the team.
+- **Transparent conflict-flagging:** Show where documents disagree, instead of letting an AI assistant quietly pick one side.
 
 ## Why I built this
 
-- **One GenAI Setup**: To see how one Claude setup could serve both a project team and the whole company: shared context for the team, and a knowledge base anyone can ask questions.
-- **Summarize once, read many**: Reading documents for every question is slow and expensive. I designed the brain to read only what changed since the last refresh, use a small, cheap AI model to pull out the facts, and answer from the brief before opening the original documents.
-- **Eval set for trust**: I built evidence by hiding the failures a real company fears most in the test documents such as leaked personal data, disagreements settled without anyone noticing, and made-up facts, and scored every run.
+- **One GenAI setup:** To see how one Claude setup could serve both a project team and the whole company: shared context for the team, and a knowledge base anyone can ask questions.
+- **Summarise once, read many:** Reading documents for every question is slow and expensive. I designed the brain to read only what changed since the last refresh, use a small, cheap AI model to pull out the facts, and answer from the brief before opening the original documents.
+- **Eval set for trust:** I built evidence by hiding the failures a real company fears most in the test documents such as leaked personal data, disagreements settled without anyone noticing, and made-up facts, and scored every run.
 
 ## How it works
 
@@ -48,7 +50,10 @@ Project documents          Capture job                    Human approval        
                            check catches what it misses.
 ```
 
-GitHub raises a pull request (PR) to propose a change for review. A human merges it to accept the change.
+The capture job opens a pull request (PR) on GitHub to propose a change for review. A person merges it to accept the change.
+
+<details>
+<summary>Show which stand-in replaces each company system</summary>
 
 | In a real company | In this POC |
 |---|---|
@@ -58,6 +63,8 @@ GitHub raises a pull request (PR) to propose a change for review. A human merges
 | Team code and design records | This repo: [`src/`](src/), [`docs/`](docs/), [`decisions/`](decisions/) |
 | Company knowledge base | [`learnings/approved/`](learnings/approved/) |
 | Company search | A claude.ai Project (a Claude workspace limited to chosen files) that knows only the approved cards, or any AI assistant connected through the n8n workflow W3 |
+
+</details>
 
 ## Key design choices
 
@@ -81,6 +88,9 @@ W1 writes cards only. The Claude Code job still rebuilds the brief.
 
 The approval step stays the same at any size: an AI assistant reads only what a person approved. What changes is how documents come in, how confidential details are caught and how cards are found.
 
+<details>
+<summary>Show all 10 parts and how each one changes at scale</summary>
+
 | Step | In this prototype | At scale |
 |---|---|---|
 | Sources | n8n checks one Drive folder every minute. It picks up new documents only, not edits. | Drive, SharePoint and Slack notify the system as soon as something changes. An edited document is captured again. |
@@ -93,6 +103,8 @@ The approval step stays the same at any size: an AI assistant reads only what a 
 | Access | One shared access key. Everyone with the key sees every approved card. | Each person signs in and sees only the cards their role allows, using each card's `sensitivity` field. |
 | Operations | An email when a workflow fails. One n8n trial account. | Automatic retries, alerts in Slack or to the on-call person, extra capacity for busy periods, separate test and live setups, and keys kept in a secure vault. |
 | Coverage and audit | Questions are stored only in n8n's run history. Nobody reviews them. | Every question is logged with who asked and which cards answered. Each "No approved learning covers this" is counted, which shows what the brain is missing. |
+
+</details>
 
 For more information on what this prototype does not prove, see [Known gaps](#known-gaps).
 
@@ -126,12 +138,18 @@ Each round has a page in [`iterations/`](iterations/) with what failed, the exac
 - **One disagreement in the main test set is still missed (C1).** C1 is not in the unseen set, which is why round 4 shows 7/7. A meeting note says "Agreed: retention is 30 days"; the design document says 90. The rule reads "agreed" as a change, so the brief treats 30 days as the new fact instead of flagging the disagreement.
 - **Made-up facts are not scored.** Round 1 made up 4 facts. One got past human review, and the question-answering Project then repeated it with confidence. A spot check of the current output found no unsourced numbers or reasons, but no script tests for this yet.
 - **Redaction protects the knowledge base, not the original documents.** A Project that read the Drive documents directly answered one question with a team member's leave dates. Access to the original documents needs its own controls.
+
+<details>
+<summary>Show 6 more gaps</summary>
+
 - **The one-page brief loses history.** The 600-word limit pushed older, replaced dates out of the brief in round 4. The cards still hold them.
 - **Rounds 2 and 3 were tuned on the same test they were scored on.** Round 4 is the only unseen test, and the same person wrote its documents and the rules.
 - **A person, not a script, marks the judgement tests.**
 - **Cost doubled** from round 1 to round 2 as the rules grew: from about 59,000 to 115,000 Haiku tokens for a full rebuild, and 93,000 for a small update. Tokens are the units AI models charge by.
 - **The cost test has not been run.** [`tests/eval_questions.md`](tests/eval_questions.md) compares answering from the brief with answering from the original documents.
 - **One-person simulation.** No real user roles, single sign-on, permission-aware search, Microsoft 365 or ticketing system. The stand-ins show the shape, not the scale.
+
+</details>
 
 ## Repo map
 
@@ -164,12 +182,15 @@ You need Claude Code, the GitHub CLI, Python 3 and the Google Drive connector, p
 > [!WARNING]
 > Capture sends document text to the Anthropic API before redaction. Use test data only.
 
-Use the following steps to run capture with Claude Code:
+<details>
+<summary>Show the steps to run capture with Claude Code</summary>
 
 1. Run `/capture` in Claude Code in this folder. It opens a pull request with new cards and a fresh brief.
 2. Review the pull request. Merge it to approve, or close it to reject.
 3. Run `python tests/score.py`, then mark the judgement tests it prints. Add `--save <run>` to keep the record.
 4. Run `/lint-wiki`. It writes [`lint-report.md`](lint-report.md): disagreements, out-of-date claims, cards nothing links to, and duplicates.
 5. Optional: create the claude.ai Projects "Alpha" and "Ask the Org" from [`project-instructions/`](project-instructions/) to ask questions over the brief and the cards.
+
+</details>
 
 To run capture and questions on n8n instead, import the workflows in [`n8n/`](n8n/). For more information, see [`n8n/README.md`](n8n/README.md).
