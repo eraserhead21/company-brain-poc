@@ -1,8 +1,10 @@
 # Company Brain POC
 
-A governed company brain: it turns project documents into redacted, approved knowledge that people and AI agents can query.
+A governed company brain turns project documents into redacted, approved knowledge that people and AI agents can query. For example, a lesson from cutover rehearsal notes becomes a learning card that any agent can cite, while a pay detail in the same folder never reaches a card.
 
-**Held-out result, rules frozen:** 6/6 planted confidential values removed, 0 names leaked, 7/7 judgement checks. See [Results](#results).
+Tested on project documents it had never seen, with its rules locked, it removed all 6 planted confidential values, leaked no names and passed 7 of 7 judgement checks. For more information, see [Results](#results).
+
+## Overview
 
 Project knowledge usually lives in meeting notes, chat, tickets and design docs. Nobody reads all of it, and nobody wants personal or commercial details from it spread across the company.
 
@@ -14,6 +16,13 @@ This proof of concept (POC) is a small working version of a fix. It runs two way
 Nothing reaches the shared wiki until a person approves it. Personal data, secrets and commercial terms are removed before anyone sees the output. People and AI agents query only approved content: through a claude.ai Project, or through any MCP client connected to the n8n MCP server.
 
 Built by Abhishek Katta with Claude Code and n8n. Portfolio: [abhishekkatta.netlify.app](https://abhishekkatta.netlify.app).
+
+## Use cases
+
+- Give AI agents project context they can cite, without exposing personal or commercial data.
+- Reuse lessons across projects: a card written for one project answers the next team's question.
+- Brief a new team member from one page instead of every meeting note.
+- Show disagreements between sources instead of letting an agent pick one.
 
 ## Why I built this
 
@@ -76,9 +85,12 @@ The gate does not change with size: an agent reads only what a person approved. 
 | Operations | An email on failure. One n8n Cloud trial account. | Retry On Fail on API nodes, Slack or on-call alerts, queue-mode workers, Git-backed dev and prod environments, external secrets. |
 | Coverage and audit | Questions exist only in n8n's execution history. Nothing reports on them. | Every question is logged with the caller and the cards cited. Each "No approved learning covers this" is counted, and the count shows where the brain has gaps. |
 
-For what this prototype does not prove, see [Known gaps](#known-gaps).
+For more information on what this prototype does not prove, see [Known gaps](#known-gaps).
 
 ## How it is tested
+
+> [!NOTE]
+> All project data in this repo is fictional. Names, contact details, secrets and commercial terms are planted for the redaction test.
 
 The project is fictional ("Project Alpha", a smart-meter streaming migration). Its sources are seeded with things the job must handle:
 
@@ -135,10 +147,15 @@ Each round has a page in [`iterations/`](iterations/) with what failed, the exac
 
 You need Claude Code, the GitHub CLI, Python 3 and the Google Drive connector, plus your own Drive folder. Set its ID in [`poc-config.json`](poc-config.json).
 
+> [!WARNING]
+> Capture sends document text to the Anthropic API before redaction. Use test data only.
+
+Use the following steps to run capture with Claude Code:
+
 1. Run `/capture` in Claude Code in this folder. It opens a PR with new cards and a fresh brief.
 2. Review the PR. Merge it to approve, or close it to reject.
 3. Run `python tests/score.py`, then mark the judgement checks it prints. Add `--save <run>` to keep the record.
 4. Run `/lint-wiki`. It writes [`lint-report.md`](lint-report.md): contradictions, stale claims, orphan cards and duplicates.
 5. Optional: create the claude.ai Projects "Alpha" and "Ask the Org" from [`project-instructions/`](project-instructions/) to ask questions over the brief and the cards.
 
-To run capture and queries on n8n instead, import the workflows in [`n8n/`](n8n/). [`n8n/README.md`](n8n/README.md) lists the credentials to set.
+To run capture and queries on n8n instead, import the workflows in [`n8n/`](n8n/). For more information, see [`n8n/README.md`](n8n/README.md).
