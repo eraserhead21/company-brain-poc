@@ -1,17 +1,19 @@
 # Company Brain POC
 
+A governed company brain: it turns project documents into redacted, approved knowledge that people and AI agents can query.
+
 **Held-out result, rules frozen:** 6/6 planted confidential values removed, 0 names leaked, 7/7 judgement checks. See [Results](#results).
 
 Project knowledge usually lives in meeting notes, chat, tickets and design docs. Nobody reads all of it, and nobody wants personal or commercial details from it spread across the company.
 
-This POC is a small working version of a fix. A Claude Code job, run on demand, reads one project's sources and writes two things:
+This proof of concept (POC) is a small working version of a fix. It runs two ways: as a Claude Code job on demand, or as n8n workflows (see [Operated with n8n](#operated-with-n8n)). The capture step reads one project's sources and writes two things:
 
 - **A project brief:** one page of current status, decisions, risks, open conflicts and superseded facts. Every fact carries its source.
 - **Learning cards:** short, reusable lessons ("request customer sandbox access at kickoff") that the rest of the company can search.
 
-Nothing reaches the shared wiki until a person approves it. Personal data, secrets and commercial terms are removed before anyone sees the output.
+Nothing reaches the shared wiki until a person approves it. Personal data, secrets and commercial terms are removed before anyone sees the output. People and AI agents query only approved content: through a claude.ai Project, or through any MCP client connected to the n8n MCP server.
 
-Built by Abhishek Katta with Claude Code, on a single Claude Pro account. Portfolio: [abhishekkatta.netlify.app](https://abhishekkatta.netlify.app).
+Built by Abhishek Katta with Claude Code and n8n. Portfolio: [abhishekkatta.netlify.app](https://abhishekkatta.netlify.app).
 
 ## Why I built this
 
@@ -37,7 +39,7 @@ Project sources                     Capture job                      Human gate 
 | Issue tracker | GitHub Issues on this repo |
 | Team repo | This repo: [`src/`](src/), [`docs/`](docs/), [`decisions/`](decisions/) |
 | Company wiki | [`learnings/approved/`](learnings/approved/) |
-| Company search | A claude.ai Project whose only knowledge is the approved cards |
+| Company search | A claude.ai Project whose only knowledge is the approved cards, or any MCP client through the n8n MCP server (W3) |
 
 The design choices that matter:
 
@@ -53,7 +55,7 @@ The same capture and query flow also runs on n8n Cloud, with no Claude Code sess
 - **W1 Capture:** a new Google Doc in the project folder goes to Claude Haiku with the redaction rules, then through the same regex backstop as [`scripts/redaction_check.py`](scripts/redaction_check.py). A clean card opens a PR. A doc that cannot be written without confidential detail is held and gets no card.
 - **W2 Error alerts:** a production failure in W1, W3 or W3a sends an email with the failed node, the error and a link to the run.
 - **W3 Ask the brain:** an MCP server behind a Bearer token, with two tools: `search_approved_cards` and `get_brief`. Both read only `main`, so an agent sees a card only after a person merges it.
-- **W3a Card search:** the keyword search behind `search_approved_cards`.
+- **W3a Card search:** the keyword search behind `search_approved_cards`. It returns up to 3 cards with their IDs, or "No approved learning covers this."
 
 W1 writes cards only. The brief is still rebuilt by the Claude Code job.
 
@@ -68,7 +70,7 @@ The gate does not change with size: an agent reads only what a person approved. 
 | Extraction | One card per doc, from the first 60,000 characters. JSON is parsed from the reply text. | Long docs split into chunks, several cards per doc, structured output checked against a schema. A new card is checked for duplicates against existing cards before its PR opens. The eval set runs again on every prompt change. |
 | Held docs | The run stops at a no-op node. Nobody is told. | A review queue that records the reason and messages the doc owner. |
 | Approval | One person merges a GitHub PR. | The same merge, with owners per topic (CODEOWNERS). n8n's send-and-wait approval in Slack or email for reviewers who do not use GitHub. |
-| Retrieval | Keyword overlap. One GitHub call per card for each question. | Cards embedded on merge into a vector store (Qdrant or pgvector). Hybrid keyword and vector search. Answers still cite card ids. |
+| Retrieval | Keyword overlap. One GitHub call per card for each question. | Cards embedded on merge into a vector store (Qdrant or pgvector). Hybrid keyword and vector search. Answers still cite card IDs. |
 | Freshness | Cards never expire. `/lint-wiki` flags stale claims when someone runs it. | Each card has an owner and a review-by date. Lint runs on a schedule, and a merged card that supersedes another retires it. |
 | Access | One shared Bearer token. Every caller sees every approved card. | Per-user sign-in in front of the MCP endpoint. Results filtered by each card's `sensitivity` field. |
 | Operations | An email on failure. One n8n Cloud trial account. | Retry On Fail on API nodes, Slack or on-call alerts, queue-mode workers, Git-backed dev and prod environments, external secrets. |
@@ -114,9 +116,11 @@ Each round has a page in [`iterations/`](iterations/) with what failed, the exac
 
 | Path | What it is |
 |---|---|
+| [`CLAUDE.md`](CLAUDE.md) | The rules: card format, redaction rules and the conflict rule |
 | [`brief.md`](brief.md) | The current project brief |
 | [`learnings/approved/`](learnings/approved/) | Approved learning cards |
 | [`sources/`](sources/) | Exported copies of the Drive docs (fictional, with planted values) |
+| [`src/`](src/), [`docs/`](docs/), [`decisions/`](decisions/) | The stand-in team repo: code, architecture notes and ADRs |
 | [`iterations/`](iterations/) | One page per improvement round |
 | [`tests/`](tests/) | Answer keys, scorer, saved results |
 | [`scripts/redaction_check.py`](scripts/redaction_check.py) | Regex backstop for the redaction step |
@@ -125,13 +129,16 @@ Each round has a page in [`iterations/`](iterations/) with what failed, the exac
 | [`log.md`](log.md) | Append-only run log with counts, cost and the capture cursor |
 | [`n8n/`](n8n/) | Exports of the four n8n workflows, with an import guide |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to run, review and extend the POC |
+| [`poc-config.json`](poc-config.json) | Drive folder ID and the map from Drive doc titles to `sources/` files |
 
 ## Run it
 
-Needs Claude Code, the GitHub CLI, Python 3 and the Google Drive connector, plus your own Drive folder (set its id in [`poc-config.json`](poc-config.json)).
+You need Claude Code, the GitHub CLI, Python 3 and the Google Drive connector, plus your own Drive folder. Set its ID in [`poc-config.json`](poc-config.json).
 
-1. `/capture` in Claude Code in this folder. It opens a PR with new cards and a fresh brief.
-2. Review the PR. Merge it to approve; close it to reject.
-3. `python tests/score.py`, then mark the judgement checks it prints. Add `--save <run>` to keep the record.
-4. `/lint-wiki` writes [`lint-report.md`](lint-report.md): contradictions, stale claims, orphan cards, duplicates.
+1. Run `/capture` in Claude Code in this folder. It opens a PR with new cards and a fresh brief.
+2. Review the PR. Merge it to approve, or close it to reject.
+3. Run `python tests/score.py`, then mark the judgement checks it prints. Add `--save <run>` to keep the record.
+4. Run `/lint-wiki`. It writes [`lint-report.md`](lint-report.md): contradictions, stale claims, orphan cards and duplicates.
 5. Optional: create the claude.ai Projects "Alpha" and "Ask the Org" from [`project-instructions/`](project-instructions/) to ask questions over the brief and the cards.
+
+To run capture and queries on n8n instead, import the workflows in [`n8n/`](n8n/). [`n8n/README.md`](n8n/README.md) lists the credentials to set.
