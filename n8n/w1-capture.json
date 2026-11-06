@@ -1,0 +1,473 @@
+{
+  "name": "Company brain: capture",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "<DRIVE_FOLDER_ID>",
+          "mode": "id"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "id": "fc984f24-c380-4cad-a116-4a5e54dfb1bc",
+      "name": "New doc in Project Alpha folder",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        272
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "<CREDENTIAL_ID>",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the Claude request from the exported Google Doc text.\nconst file = $('New doc in Project Alpha folder').first().json;\nconst text = $input.first().json.data || '';\nconst system = \"You extract reusable knowledge from one project document for a company wiki.\\nReturn ONLY a JSON object, no prose, no code fence:\\n{\\\"card\\\": true|false, \\\"slug\\\": \\\"kebab-case-slug\\\", \\\"title\\\": \\\"...\\\", \\\"type\\\": \\\"learning|decision|risk\\\", \\\"date\\\": \\\"YYYY-MM-DD of the event\\\", \\\"owner_role\\\": \\\"PM|TL|Engineer|Team\\\", \\\"confidence\\\": \\\"high|medium|low\\\", \\\"context\\\": \\\"...\\\", \\\"what_happened\\\": \\\"...\\\", \\\"what_we_learned\\\": \\\"...\\\", \\\"reason_if_no_card\\\": \\\"...\\\"}\\nRules:\\n- One card for the single most reusable learning, decision or risk in the document. A status update that only restates a plan is not a learning: set \\\"card\\\": false.\\n- Each of context, what_happened, what_we_learned: one or two plain sentences.\\n- Redaction, before writing anything: never include names of people (use roles: PM, TL, Engineer, customer contact); contact data (phones, emails, addresses); health, leave, HR, performance or pay; dates of birth or personal identifiers; secrets (passwords, keys, tokens, VPN or Wi-Fi codes); customer identifiers (account numbers, household addresses); commercial terms (contract value, penalties, margins, disputes, vendor-switch talk).\\n- If the learning cannot be written without one of these, set \\\"card\\\": false and \\\"reason_if_no_card\\\": \\\"dropped_confidential\\\".\";\nreturn [{ json: {\n  fileId: file.id,\n  fileName: file.name,\n  body: {\n    model: 'claude-haiku-5-5',\n    max_tokens: 1024,\n    system,\n    messages: [{ role: 'user', content: `Document title: ${file.name}\\n\\n${text.slice(0, 60000)}` }]\n  }\n}}];\n"
+      },
+      "id": "fc2ba2e1-8707-4377-8baf-e14ee4b3500c",
+      "name": "Build Claude request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "id": "a6457bae-d859-442b-ba4f-2c22281f83ba",
+      "name": "Claude writes card",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        896,
+        272
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "<CREDENTIAL_ID>",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Claude's JSON, build the card in the repo's template, run the regex backstop.\nconst src = $('Build Claude request').first().json;\nconst raw = ($input.first().json.content || []).find(b => b.type === 'text')?.text || '{}';\nlet c;\ntry { c = JSON.parse(raw.replace(/^```(json)?|```$/g, '').trim()); }\ncatch (e) { return [{ json: { ok: false, reason: 'Claude did not return JSON', raw } }]; }\nif (!c.card) return [{ json: { ok: false, reason: c.reason_if_no_card || 'no card', fileName: src.fileName } }];\n\nconst today = new Date().toISOString().slice(0, 10);\nconst date = /^\\d{4}-\\d{2}-\\d{2}$/.test(c.date || '') ? c.date : today;\nconst slug = (c.slug || 'learning').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);\nconst id = `${date}-${slug}`;\nconst card = [\n  '---',\n  `id: ${id}`,\n  `title: ${c.title}`,\n  `type: ${c.type}`,\n  'project: alpha',\n  `date: ${date}`,\n  `owner_role: ${c.owner_role}`,\n  `confidence: ${c.confidence}`,\n  'sensitivity: internal',\n  `sources: [Google Drive: ${src.fileName}]`,\n  'supersedes: none',\n  '---',\n  `**Context:** ${c.context}`,\n  '',\n  `**What happened:** ${c.what_happened}`,\n  '',\n  `**What we learned:** ${c.what_we_learned}`,\n  ''\n].join('\\n');\n\n// Same generic patterns as scripts/redaction_check.py in the repo.\nconst patterns = {\n  email: /[\\w.+-]+@[\\w-]+\\.[\\w.-]+/g,\n  phone: /(?<!\\w)\\+?\\d[\\d \\-]{8,}\\d(?!\\w)/g,\n  money: /[€$£]\\s?\\d[\\d.,]*\\s?[kKmM]?/g,\n  secret_word: /\\b(pass(word)?|pwd|api[_ -]?key|token|secret|vpn|wi-?fi|sftp)\\b\\s*[:=]/gi,\n  dob: /\\b(dob|date of birth|born)\\b/gi,\n  account_id: /\\b[A-Z]{2,}-ACCT-\\d+\\b/g,\n  hr_words: /\\b(salary|raise|pip|performance improvement|sick|surgery|medical)\\b/gi,\n  commercial: /\\b(margin|penalt(y|ies)|contract value|dispute|switch(ing)? vendor)\\b/gi,\n};\nconst hits = [];\nfor (const line of card.split('\\n')) {\n  if (line.startsWith('sources:')) continue;\n  for (const [name, re] of Object.entries(patterns)) {\n    for (const m of line.matchAll(re)) {\n      if (name === 'phone' && /^\\d{4}-\\d{2}-\\d{2}$/.test(m[0].trim())) continue;\n      hits.push(`${name}: ${m[0]}`);\n    }\n  }\n}\nconst stamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 13);\nreturn [{ json: {\n  ok: hits.length === 0,\n  reason: hits.length ? 'redaction backstop hit' : '',\n  hits,\n  fileName: src.fileName,\n  id, card,\n  path: `learnings/approved/${id}.md`,\n  branch: `capture/n8n-${stamp}`,\n  contentB64: Buffer.from(card, 'utf8').toString('base64'),\n}}];\n"
+      },
+      "id": "6b801017-4df0-4ae8-8ecb-99c84b466dbd",
+      "name": "Parse and redaction check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b93ace8f-d484-4cd5-8e05-714da419fb15",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "af30af35-5ba7-417d-a55a-8a075ea4127b",
+      "name": "Clean card?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1328,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/eraserhead21/company-brain-poc/git/ref/heads/main",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f3a12b21-0961-4e9b-bbc8-1fd7b289cb4f",
+      "name": "Get main commit",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1552,
+        160
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "<CREDENTIAL_ID>",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.github.com/repos/eraserhead21/company-brain-poc/git/refs",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ ref: 'refs/heads/' + $('Parse and redaction check').first().json.branch, sha: $json.object.sha }) }}",
+        "options": {}
+      },
+      "id": "7677de93-f4fd-41a1-bcf4-c83848550b1d",
+      "name": "Create capture branch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1776,
+        160
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "<CREDENTIAL_ID>",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://api.github.com/repos/eraserhead21/company-brain-poc/contents/{{ $('Parse and redaction check').first().json.path }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: 'capture (n8n): ' + $('Parse and redaction check').first().json.id, content: $('Parse and redaction check').first().json.contentB64, branch: $('Parse and redaction check').first().json.branch }) }}",
+        "options": {}
+      },
+      "id": "5e6bfae0-3d79-406e-b9c4-6b08313a8bc6",
+      "name": "Add learning card",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1984,
+        160
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "<CREDENTIAL_ID>",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.github.com/repos/eraserhead21/company-brain-poc/pulls",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ title: 'Capture (n8n): ' + $('Parse and redaction check').first().json.id, head: $('Parse and redaction check').first().json.branch, base: 'main', body: 'New learning card from Google Drive doc: ' + $('Parse and redaction check').first().json.fileName + '\\n\\nRedaction backstop: 0 hits. Merge = approve. Close = reject.' }) }}",
+        "options": {}
+      },
+      "id": "d11445be-2095-46b3-91cd-b4c981aff0ba",
+      "name": "Open pull request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2208,
+        160
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "<CREDENTIAL_ID>",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "9ce85dfd-d09b-45bb-aee6-c597066cf4cd",
+      "name": "Held for a person",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1552,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Company brain: capture (n8n)\nNew Google Doc in the Project Alpha folder -> Claude writes one learning card in the repo template -> regex redaction backstop -> GitHub PR. **Merge = approve.** Cards with a redaction hit, or no reusable learning, stop at *Held for a person*.\n\nCredentials: Google Drive OAuth2, GitHub, and a Header Auth credential named `x-api-key` holding an Anthropic API key.",
+        "height": 220,
+        "width": 640
+      },
+      "id": "20eada47-e6df-4af7-8fe6-45e5dbc37996",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "text/plain"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        224,
+        272
+      ],
+      "id": "5a4dff24-2528-4799-aeab-0ea7ccf3ba7c",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "<CREDENTIAL_ID>",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        272
+      ],
+      "id": "9f8e1552-899c-4066-9c51-3b6214fdbc02",
+      "name": "Extract from File"
+    }
+  ],
+  "connections": {
+    "New doc in Project Alpha folder": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Claude request": {
+      "main": [
+        [
+          {
+            "node": "Claude writes card",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude writes card": {
+      "main": [
+        [
+          {
+            "node": "Parse and redaction check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse and redaction check": {
+      "main": [
+        [
+          {
+            "node": "Clean card?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean card?": {
+      "main": [
+        [
+          {
+            "node": "Get main commit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Held for a person",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get main commit": {
+      "main": [
+        [
+          {
+            "node": "Create capture branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create capture branch": {
+      "main": [
+        [
+          {
+            "node": "Add learning card",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add learning card": {
+      "main": [
+        [
+          {
+            "node": "Open pull request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Build Claude request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "VNxRr5zaIXxPgKU9",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "tags": []
+}

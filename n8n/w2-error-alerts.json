@@ -1,0 +1,65 @@
+{
+  "name": "W2 Error alerts",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "83d1fc5c-3546-4ce2-bf38-7e5b16c95990",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "sendTo": "you@example.com",
+        "subject": "=n8n failed: {{ $json.workflow.name }}",
+        "emailType": "text",
+        "message": "=Workflow: {{ $json.workflow.name }} Failed node: {{ $json.execution.lastNodeExecuted }} Error: {{ $json.execution.error.message }} Run: {{ $json.execution.url }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "507a5f88-8520-492e-a01c-3b35482f3228",
+      "name": "Send a message",
+      "webhookId": "<REMOVED>",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "<CREDENTIAL_ID>",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "tags": []
+}

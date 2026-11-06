@@ -1,0 +1,146 @@
+{
+  "name": "W3a Card search",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "id": "d0f0af98-04a7-4778-96bd-5f2a874f9d75",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/eraserhead21/company-brain-poc/contents/learnings/approved?ref=main",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "options": {}
+      },
+      "id": "c7204574-a524-4f42-9c94-cf2116831249",
+      "name": "List cards",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        480,
+        304
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "<CREDENTIAL_ID>",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.raw"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "597b48c9-117a-425a-83be-6312108679be",
+      "name": "Get card",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        720,
+        304
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "<CREDENTIAL_ID>",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Return the top 3 approved cards that match the question, or a clear refusal.\nconst q = $('When Executed by Another Workflow').first().json.query || '';\nconst stop = new Set(['what','when','which','where','does','about','should','would','could','there','their','this','that','with','from','have','engineer','project','learn','learned','lesson','lessons']);\nconst words = q.toLowerCase().split(/\\W+/).filter(w => w.length > 3 && !stop.has(w));\nconst scored = $input.all()\n  .map(i => i.json.data || '')\n  .map(t => ({ t, s: words.filter(w => t.toLowerCase().includes(w)).length }))\n  .filter(x => x.s >= Math.min(2, words.length))\n  .sort((a, b) => b.s - a.s)\n  .slice(0, 3);\nif (!words.length || !scored.length) {\n  return [{ json: { result: 'No approved learning covers this.' } }];\n}\nreturn [{ json: { result: scored.map(x => x.t).join('\\n\\n---\\n\\n') } }];"
+      },
+      "id": "b0a4c0a8-2bec-48c6-83d4-df6f64e376ae",
+      "name": "Rank cards",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        304
+      ]
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "List cards",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List cards": {
+      "main": [
+        [
+          {
+            "node": "Get card",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get card": {
+      "main": [
+        [
+          {
+            "node": "Rank cards",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "VNxRr5zaIXxPgKU9",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp"
+  },
+  "nodeGroups": [],
+  "tags": []
+}
