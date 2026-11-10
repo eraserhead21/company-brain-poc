@@ -18,3 +18,12 @@ The rule all four follow: agents read only what a person approved. A card reache
 3. In W1, pick your Drive folder in place of `<DRIVE_FOLDER_ID>`.
 4. In W3, point `search_approved_cards` at your imported W3a.
 5. In W1, W3 and W3a, set **Settings → Error workflow** to W2. Publish W2 first, or it cannot be selected.
+
+## Live fixes
+
+The first live run of W1 failed four times. Each fix is in the exports above.
+
+1. **"This credential is configured to prevent use within an HTTP Request node."** n8n Cloud does not let its managed Google sign-in run inside an HTTP Request node. Fix: a Google Drive "Download file" node (Google Docs converted to text), then "Extract from File".
+2. **"Authorization failed."** The Header Auth credential did not send the key as the `x-api-key` header. Fix: set the header name and value correctly.
+3. **"Method not allowed."** The Claude request node had changed to PUT. Fix: back to POST.
+4. **Every document fell through as "no card".** Claude's reply can start with a block that is not text, and the code read the first block. Fix: read the block whose `type` is `text`.
