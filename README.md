@@ -6,6 +6,8 @@ A company brain captures each team's learnings and shares them with the rest of 
 
 ![Project documents pass through redaction and a person's approval. Approved learning cards reach people and AI assistants; pay, phone numbers, passwords, and names never reach a card.](assets/company-brain-overview.svg)
 
+*Figure 1. Only content that a person approves reaches people and AI assistants. Redaction removes confidential details before a person reviews the cards.*
+
 For example, a team's meeting notes record that a test run of a new billing system found errors before go-live. That lesson becomes a short learning card that any AI assistant can quote. A colleague's pay, mentioned in the same folder, never reaches a card.
 
 **Tested on project documents it had never seen, with its rules locked:**
@@ -28,11 +30,13 @@ This proof of concept (POC) reads one project's documents and writes two things:
 It runs in two modes:
 
 1. A Claude Code job (`/capture`) that proposes new cards and a fresh brief. In this POC, I start it by hand. At scale, it runs on a schedule.
-2. Four automated n8n workflows (see [Operated with n8n](#operated-with-n8n)).
+2. Four automated n8n workflows (see [Operated with n8n](#operated-with-n8n)), plus a feedback loop that turns questions and ratings into eval cases (see [Feedback loop](#feedback-loop)).
 
 ## Use cases
 
 ![Four use cases. Retrieve sanitised knowledge: AI assistants quote project knowledge without exposing personal or commercial data. Learn from other teams: a person on one team reuses another team's lessons without asking around. Self-serve onboarding: a new team member queries the knowledge base to get up to speed, saving productive hours for the team. Transparent conflict-flagging: conflicts between documents go to a person, instead of an AI assistant making the decision.](assets/use-cases.svg)
+
+*Figure 2. Four ways that people and AI assistants use the company brain.*
 
 ## Why I built this
 
@@ -42,7 +46,9 @@ It runs in two modes:
 
 ## How it works
 
-![Five steps: collect documents, draft cards with Claude Haiku, redact confidential details, a person approves the pull request, then people and AI assistants ask questions.](assets/how-it-works.svg)
+![Five steps: collect documents, draft cards with Claude Haiku, redact confidential details, a person approves the pull request, then people and AI assistants ask questions. A feedback loop runs from approval back to drafting: reviewer feedback and test scores change the rules. A second loop runs from asking back to collecting: coverage gaps and user ratings become eval cases that a person approves.](assets/how-it-works.svg)
+
+*Figure 3. The five steps of the capture job, and the two feedback loops that improve it. Nothing reaches step 5 without a person at step 4.*
 
 The capture job opens a pull request (PR) on GitHub to propose new cards and a fresh brief. A person approves them by merging the PR. The prototype uses simple stand-ins for company systems, such as a Google Drive folder for the project file share. For every stand-in, see [Prototype vs at scale](#prototype-vs-at-scale).
 
@@ -62,6 +68,8 @@ n8n is a workflow automation tool. The same capture and question-answering steps
 
 ![Four n8n workflows. W1 Capture checks the Drive folder every minute. Claude Haiku writes one card, a redaction check tests it, and a clean card opens a pull request; otherwise W1 holds the document and writes no card. A person merges the pull request into the main branch. W3 Ask the brain is an MCP server with a Bearer token: search_approved_cards runs W3a Card search, and get_brief returns brief.md, both from the main branch only. W2 Error alerts emails the failed step, the error, and a link to the run if W1, W3, or W3a fails.](assets/n8n-workflows.svg)
 
+*Figure 4. The four n8n workflows. W1 opens pull requests, W3 and W3a read only the `main` branch, and W2 sends an email when a workflow fails.*
+
 <details>
 <summary>Show what each workflow does</summary>
 
@@ -80,12 +88,46 @@ n8n is a workflow automation tool. The same capture and question-answering steps
 
 ![Three tests. Capture (W1): the first live run on new Drive documents failed 4 times; I fixed each failure, then W1 opened a pull request. Questions over MCP (W3): from Claude Desktop, W3 answered from an approved card and cited its ID, and refused "When was the engineer on sick leave?" because no approved card covers it. Error alerts (W2): a scheduled workflow that always fails triggered W2, and the email arrived within 2 minutes with the failed step and a link to the run.](assets/n8n-tests.svg)
 
+*Figure 5. The three live tests in n8n and their results.*
+
 The four capture fixes run from a blocked Drive credential to a reply-parsing bug. See [Live fixes](n8n/README.md#live-fixes).
 
 <details>
 <summary>Show the W1 capture workflow in n8n</summary>
 
 ![The W1 capture workflow in the n8n editor: a Drive trigger, file download and text extraction, the Claude request, the redaction check, then either four GitHub steps that open a pull request or a "Held for a person" step.](assets/w1-capture-workflow.png)
+
+*Figure 6. W1 in the n8n editor, from the Drive trigger to the pull request or the held document.*
+
+</details>
+
+## Feedback loop
+
+The brain learns from use: questions, ratings, and a regression eval set flow back to a person, who approves every change.
+
+<details>
+<summary>Show how the feedback loop works</summary>
+
+| Part | What it does | Workflow |
+|---|---|---|
+| **Production log** | Writes each question to an n8n Data Table after the W1 redaction check, with the card IDs returned and "hit" or "coverage gap". | W3a Card search (logged) |
+| **User ratings** | A third MCP tool, `rate_answer`, records "helpful", "wrong", "stale", or "missing" for an answer, after redaction. | W3b Rate answer |
+| **Human review** | Every Monday, W4 counts the coverage gaps and poor ratings, and opens a pull request that proposes eval cases in `tests/answers/feedback_cases.json`. Merging the PR approves the cases. W4 never writes to `main`. | W4 Feedback review |
+| **Regression eval set** | W4b reruns every approved case through the logged search and records pass or fail. Its first run is the baseline. | W4b Regression eval |
+
+A question that held personal data, such as "When was the engineer on sick leave?", becomes a guardrail case: it must stay refused.
+
+> [!NOTE]
+> This is the outer feedback loop: signals from use become eval cases, and a person approves each change. It is not in-run feedback (the evaluator-optimizer pattern, where one model call critiques another within a single run). The POC does not use that pattern.
+
+**Tested on 2026-11-10 with fictional test questions:**
+
+- 5 questions wrote 5 log rows, each with the correct hit or coverage-gap flag.
+- A planted phone number was stored as `[redacted:phone]`.
+- One rating wrote one row.
+- W4 opened [PR #26](https://github.com/eraserhead21/company-brain-poc/pull/26) with 3 proposed cases, and `main` stayed unchanged.
+
+The workflow sources are in [`n8n/sdk/`](n8n/sdk/).
 
 </details>
 
@@ -107,7 +149,7 @@ The approval step stays the same at any scale: an AI assistant reads only what a
 | Freshness | Cards never expire. The check for out-of-date claims (`/lint-wiki`) runs only when someone starts it. | Each card has an owner and a review date. The check runs on a schedule, and a newer card retires the one it replaces. |
 | Access | One shared access key. Everyone with the key sees every approved card. | Each person signs in and sees only the cards their role allows, using each card's `sensitivity` field. |
 | Operations | An email when a workflow fails. One n8n trial account. | Automatic retries, alerts in Slack or to the on-call person, extra capacity for busy periods, separate test and live setups, and keys in a secure vault. |
-| Coverage and audit | Only n8n's run history stores questions. Nobody reviews them. | The system logs every question with who asked and which cards answered. It counts each "No approved learning covers this", which shows what the brain is missing. |
+| Coverage and audit | W3a (logged) writes each question, redacted, to an n8n Data Table with "hit" or "coverage gap". W4 reviews the gaps and ratings weekly and proposes eval cases in a PR. | The system logs every question with who asked and which cards answered. It counts each "No approved learning covers this", which shows what the brain is missing. |
 
 </details>
 
@@ -157,7 +199,7 @@ Each round has a page in [`iterations/`](iterations/) with its failures, the exa
 The biggest gap: the brief still misses one conflict in the main test set.
 
 <details>
-<summary>Show all 9 gaps</summary>
+<summary>Show all 10 gaps</summary>
 
 - **One missed conflict (C1).** A meeting note says "Agreed: retention is 30 days"; the design document says 90. The rule reads "agreed" as a change, so the brief records 30 days as the new fact. C1 is not in the unseen set, so round 4 shows 7/7.
 - **No test for made-up facts.** Round 1 made up 4 facts. A human review missed one, and a Claude Project then repeated it with confidence. A spot check of the current output found no unsourced numbers or reasons, but no script tests for this.
@@ -167,6 +209,7 @@ The biggest gap: the brief still misses one conflict in the main test set.
 - **A person, not a script, marks the judgement tests.**
 - **Cost doubled as the rules grew.** A full rebuild went from about 59,000 Haiku tokens in round 1 to 115,000 in round 2. A small update takes 93,000.
 - **The cost test has not run.** [`tests/eval_questions.md`](tests/eval_questions.md) compares answering from the brief with answering from the original documents.
+- **The feedback loop is new.** It went live on 2026-11-10 and has run only on fictional test questions. W4b has no baseline until a person merges the first feedback PR.
 - **One-person simulation.** No real user roles, single sign-on, permission-aware search, Microsoft 365, or ticketing system. The stand-ins show the shape of the solution, not how it behaves at scale.
 
 </details>
@@ -189,7 +232,7 @@ The biggest gap: the brief still misses one conflict in the main test set.
 | [`.claude/`](.claude/) | The Claude Code commands for capture and checking, and the small-model helpers they use |
 | [`project-instructions/`](project-instructions/) | Instructions for the two claude.ai Projects |
 | [`log.md`](log.md) | A log of every run: counts, cost, and where the last run stopped |
-| [`n8n/`](n8n/) | Exports of the four n8n workflows, with an import guide |
+| [`n8n/`](n8n/) | Exports of the four core n8n workflows, the feedback-loop workflow sources in [`n8n/sdk/`](n8n/sdk/), and an import guide |
 | [`assets/`](assets/) | The diagrams and the n8n screenshot in this README |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to run, review, and extend the POC |
 | [`poc-config.json`](poc-config.json) | The Drive folder ID, and which Drive document matches which file in `sources/` |
