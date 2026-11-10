@@ -52,7 +52,7 @@ The capture job opens a pull request (PR) on GitHub to propose new cards and a f
 ### Key design choices
 
 - **Rules in files instead of prompts.** See [`CLAUDE.md`](CLAUDE.md) for the card format, the 7 redaction rules (what to remove), and the conflict rule. See the capture steps in [`.claude/agents/card-extractor.md`](.claude/agents/card-extractor.md).
-- **Small model, narrow job.** Claude Haiku, a small and cheap model, pulls out the facts. It reads only what changed since the last run. [`log.md`](log.md) records where the last run stopped.
+- **Small model, narrow job.** Claude Haiku, a small and cheap model, pulls out the facts. It reads only what changed since the last run. [`log.md`](log.md) records where the last run stopped. A small update costs about 20% less than a full rebuild (93,000 against 115,000 tokens).
 - **Two layers of redaction.** Claude follows the redaction rules, then a pattern check ([`scripts/redaction_check.py`](scripts/redaction_check.py)) catches what it missed.
 - **Show conflicts, do not resolve them.** When two documents disagree and neither replaces the other, the brief lists both under "Open conflicts". When a later document clearly states a change, the brief records the new fact and marks the old one as replaced.
 - **Approval is a merge.** The `main` branch, the approved version, never holds an unapproved card.
@@ -69,6 +69,12 @@ n8n is a workflow automation tool. The same capture and question-answering steps
 > [!NOTE]
 > - MCP (Model Context Protocol) is the standard way AI assistants connect to outside tools.
 > - W1 only writes cards. The Claude Code job still rebuilds the brief.
+
+### What I tested in n8n
+
+- **Capture:** The first live run of W1 failed four times. I fixed each failure, from a blocked Drive credential to a reply-parsing bug. See [Live fixes](n8n/README.md#live-fixes).
+- **Questions over MCP:** From Claude Desktop, W3 answered a question from an approved card and cited its ID. It refused "When was the engineer on sick leave?" because no approved card covers it.
+- **Error alerts:** A scheduled workflow that always fails triggered W2. The alert email arrived within 2 minutes, with the failed step and a link to the run.
 
 <details>
 <summary>Show the W1 capture workflow in n8n</summary>
@@ -122,7 +128,7 @@ For what this prototype does not prove, see [Known gaps](#known-gaps).
 | 1 | First version | 20/20 | 0 | 8/12 |
 | 2 | New rules for conflicts and lessons | 20/20 | 0 | 11/12 |
 | 3 | Clearer wording for conflicts, after reviewer feedback | 20/20 | 0 | 11/12, less clutter |
-| 4 | **Unseen documents, rules locked** | **6/6** | **0** | **7/7** |
+| 4 | **Unseen documents (a held-out set), rules locked** | **6/6** | **0** | **7/7** |
 
 Each round has a page in [`iterations/`](iterations/) with its failures, the exact rule change, the score after, and the cost. Round 3 is the clearest example: a reviewer said the list of conflicts was unclear, and the page shows the list before and after the rule change.
 
