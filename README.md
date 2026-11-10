@@ -6,6 +6,8 @@ A company brain captures each team's learnings and shares them with the rest of 
 
 ![Project documents pass through redaction and a person's approval. Approved learning cards reach people and AI assistants; pay, phone numbers, passwords, and names never reach a card.](assets/company-brain-overview.svg)
 
+*Figure 1. Only content that a person approves reaches people and AI assistants. Redaction removes confidential details before a person reviews the cards.*
+
 For example, a team's meeting notes record that a test run of a new billing system found errors before go-live. That lesson becomes a short learning card that any AI assistant can quote. A colleague's pay, mentioned in the same folder, never reaches a card.
 
 **Tested on project documents it had never seen, with its rules locked:**
@@ -34,6 +36,8 @@ It runs in two modes:
 
 ![Four use cases. Retrieve sanitised knowledge: AI assistants quote project knowledge without exposing personal or commercial data. Learn from other teams: a person on one team reuses another team's lessons without asking around. Self-serve onboarding: a new team member queries the knowledge base to get up to speed, saving productive hours for the team. Transparent conflict-flagging: conflicts between documents go to a person, instead of an AI assistant making the decision.](assets/use-cases.svg)
 
+*Figure 2. Four ways that people and AI assistants use the company brain.*
+
 ## Why I built this
 
 - **One GenAI setup:** To see how one Claude setup could serve both a project team and the whole company: shared context for the team, and a knowledge base anyone can ask questions.
@@ -43,6 +47,8 @@ It runs in two modes:
 ## How it works
 
 ![Five steps: collect documents, draft cards with Claude Haiku, redact confidential details, a person approves the pull request, then people and AI assistants ask questions.](assets/how-it-works.svg)
+
+*Figure 3. The five steps of the capture job. Nothing reaches step 5 without a person at step 4.*
 
 The capture job opens a pull request (PR) on GitHub to propose new cards and a fresh brief. A person approves them by merging the PR. The prototype uses simple stand-ins for company systems, such as a Google Drive folder for the project file share. For every stand-in, see [Prototype vs at scale](#prototype-vs-at-scale).
 
@@ -62,6 +68,8 @@ n8n is a workflow automation tool. The same capture and question-answering steps
 
 ![Four n8n workflows. W1 Capture checks the Drive folder every minute. Claude Haiku writes one card, a redaction check tests it, and a clean card opens a pull request; otherwise W1 holds the document and writes no card. A person merges the pull request into the main branch. W3 Ask the brain is an MCP server with a Bearer token: search_approved_cards runs W3a Card search, and get_brief returns brief.md, both from the main branch only. W2 Error alerts emails the failed step, the error, and a link to the run if W1, W3, or W3a fails.](assets/n8n-workflows.svg)
 
+*Figure 4. The four n8n workflows. W1 opens pull requests, W3 and W3a read only the `main` branch, and W2 sends an email when a workflow fails.*
+
 <details>
 <summary>Show what each workflow does</summary>
 
@@ -80,12 +88,16 @@ n8n is a workflow automation tool. The same capture and question-answering steps
 
 ![Three tests. Capture (W1): the first live run on new Drive documents failed 4 times; I fixed each failure, then W1 opened a pull request. Questions over MCP (W3): from Claude Desktop, W3 answered from an approved card and cited its ID, and refused "When was the engineer on sick leave?" because no approved card covers it. Error alerts (W2): a scheduled workflow that always fails triggered W2, and the email arrived within 2 minutes with the failed step and a link to the run.](assets/n8n-tests.svg)
 
+*Figure 5. The three live tests in n8n and their results.*
+
 The four capture fixes run from a blocked Drive credential to a reply-parsing bug. See [Live fixes](n8n/README.md#live-fixes).
 
 <details>
 <summary>Show the W1 capture workflow in n8n</summary>
 
 ![The W1 capture workflow in the n8n editor: a Drive trigger, file download and text extraction, the Claude request, the redaction check, then either four GitHub steps that open a pull request or a "Held for a person" step.](assets/w1-capture-workflow.png)
+
+*Figure 6. W1 in the n8n editor, from the Drive trigger to the pull request or the held document.*
 
 </details>
 
