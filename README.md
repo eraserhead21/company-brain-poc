@@ -12,7 +12,7 @@ For example, a team's meeting notes record that a test run of a new billing syst
 
 | 6 of 6 | 0 | 7 of 7 |
 |:---:|:---:|:---:|
-| fabricated confidential details removed | names leaked | judgement tests passed, marked by a person |
+| Fabricated confidential details removed | Names leaked | Judgement tests passed, marked by a person |
 
 For more information, see [Results](#results).
 
@@ -32,10 +32,7 @@ It runs in two modes:
 
 ## Use cases
 
-- **Retrieve sanitised knowledge:** AI assistants can quote project knowledge without exposing personal or commercial data.
-- **Learn from other teams:** A person on one team can reuse another team's lessons without asking around.
-- **Self-serve onboarding:** A new team member can query the knowledge base to get up to speed, saving productive hours for the team.
-- **Transparent conflict-flagging:** Show conflicts between documents to a person, instead of letting an AI assistant make a decision.
+![Four use cases. Retrieve sanitised knowledge: AI assistants quote project knowledge without exposing personal or commercial data. Learn from other teams: a person on one team reuses another team's lessons without asking around. Self-serve onboarding: a new team member queries the knowledge base to get up to speed, saving productive hours for the team. Transparent conflict-flagging: conflicts between documents go to a person, instead of an AI assistant making the decision.](assets/use-cases.svg)
 
 ## Why I built this
 
@@ -51,20 +48,29 @@ The capture job opens a pull request (PR) on GitHub to propose new cards and a f
 
 ### Key design choices
 
-- **Rules in files instead of prompts.** See [`CLAUDE.md`](CLAUDE.md) for the card format, the 7 redaction rules (what to remove), and the conflict rule. See the capture steps in [`.claude/agents/card-extractor.md`](.claude/agents/card-extractor.md).
-- **Small model, narrow job.** Claude Haiku, a small and cheap model, pulls out the facts. It reads only what changed since the last run. [`log.md`](log.md) records where the last run stopped. A small update costs about 20% less than a full rebuild (93,000 against 115,000 tokens).
-- **Two layers of redaction.** Claude follows the redaction rules, then a pattern check ([`scripts/redaction_check.py`](scripts/redaction_check.py)) catches what it missed.
-- **Show conflicts, do not resolve them.** When two documents disagree and neither replaces the other, the brief lists both under "Open conflicts". When a later document clearly states a change, the brief records the new fact and marks the old one as replaced.
-- **Approval is a merge.** The `main` branch, the approved version, never holds an unapproved card.
+| Choice | How it works | Where to look |
+|---|---|---|
+| **Rules in files instead of prompts** | Files hold the card format, the 7 redaction rules (what to remove), the conflict rule, and the capture steps. | [`CLAUDE.md`](CLAUDE.md), [`card-extractor.md`](.claude/agents/card-extractor.md) |
+| **Small model, narrow job** | Claude Haiku, a small and cheap model, pulls out the facts. It reads only what changed since the last run. A small update costs about 20% less than a full rebuild (93,000 against 115,000 tokens). | [`log.md`](log.md) records where the last run stopped |
+| **Two layers of redaction** | Claude follows the redaction rules, then a pattern check catches what it missed. | [`redaction_check.py`](scripts/redaction_check.py) |
+| **Show conflicts, do not resolve them** | When two documents disagree and neither replaces the other, the brief lists both under "Open conflicts". When a later document clearly states a change, the brief records the new fact and marks the old one as replaced. | [`brief.md`](brief.md) |
+| **Approval is a merge** | The `main` branch, the approved version, never holds an unapproved card. | [`learnings/approved/`](learnings/approved/) |
 
 ## Operated with n8n
 
 n8n is a workflow automation tool. The same capture and question-answering steps also run as four n8n workflows, with no Claude Code session. See [`n8n/`](n8n/) for the workflow exports and an import guide.
 
+![Four n8n workflows. W1 Capture checks the Drive folder every minute. Claude Haiku writes one card, a redaction check tests it, and a clean card opens a pull request; otherwise W1 holds the document and writes no card. A person merges the pull request into the main branch. W3 Ask the brain is an MCP server with a Bearer token: search_approved_cards runs W3a Card search, and get_brief returns brief.md, both from the main branch only. W2 Error alerts emails the failed step, the error, and a link to the run if W1, W3, or W3a fails.](assets/n8n-workflows.svg)
+
+<details>
+<summary>Show what each workflow does</summary>
+
 - **W1 Capture:** When a new Google Doc appears in the project folder, n8n sends it to Claude Haiku with the redaction rules, then runs the same pattern check. A clean card opens a pull request. If Claude cannot write the lesson without confidential details, W1 holds the document and writes no card.
 - **W2 Error alerts:** If W1, W3, or W3a fails during a real run, n8n emails the failed step, the error, and a link to the failed run.
 - **W3 Ask the brain:** An MCP server with two tools, `search_approved_cards` and `get_brief`, protected by a secret access key (a Bearer token). Both tools read only the `main` branch, so an assistant sees only approved cards.
 - **W3a Card search:** The keyword search behind `search_approved_cards`. It returns up to 3 cards with their IDs, or "No approved learning covers this."
+
+</details>
 
 > [!NOTE]
 > - MCP (Model Context Protocol) is the standard way AI assistants connect to outside tools.
