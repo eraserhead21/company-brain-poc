@@ -4,9 +4,9 @@ A company brain captures each team's learnings and shares them with the rest of 
 
 ![Project documents pass through redaction and a person's approval. Approved learning cards reach people and AI assistants; pay, phone numbers, passwords and names never reach a card.](assets/company-brain-overview.svg)
 
-For example, a team's meeting notes record that a test run of a new billing system found errors before go-live. This lesson becomes a short learning card that any AI assistant can quote. Sensitive information such as a colleague's pay, mentioned in the same folder, never reaches a card.
+For example, a team's meeting notes record that a test run of a new billing system found errors before go-live. These lessons become short learning cards that any AI assistant can quote. Sensitive information such as a colleague's pay, mentioned in the same folder, never reaches a card.
 
-I tested my company brain on project documents it had never seen. It identified and removed all 6 fake confidential details, leaked no names and passed 7 of 7 judgement tests marked by a person. For more information, see [Results](#results).
+I tested my company brain on project documents it had never seen. It identified and removed all 6 confidential details, leaked no names, and passed 7 of 7 judgement tests marked by a person. For more information, see [Results](#results).
 
 ## Overview
 
@@ -14,37 +14,37 @@ Project knowledge is spread across meeting notes, chat, tickets and design docum
 
 This proof of concept (POC) reads one project's documents and writes two things:
 
-- **A project brief:** one page with the current status, decisions, risks, points where documents disagree, and facts that later documents replaced. Every fact links to its source.
-- **Learning cards:** short lessons another team can reuse, such as asking the customer for access to their test system at the start of a project.
+- **A project brief:** One page with the current status, decisions, risks, points where documents disagree, and facts that later documents replaced. Each fact is linked to its source.
+- **Learning cards:** Short lessons another team can reuse. For example, asking the customer for access to their test system during project kickoff.
 
 > [!NOTE]
-> Nothing reaches the shared knowledge base until a person approves it. Personal data, passwords and commercial terms are removed first. People and AI assistants can read only approved content.
+> Facts only reach the shared knowledge base after a person approves them; people and AI assistants can read only approved content. Personal data, passwords and commercial terms are removed first.
 
 The company brain has two modes of operation:
 
-1. A Claude Code job that you run on demand.
+1. A Claude Code job, run on demand.
 2. Automated n8n workflows (see [Operated with n8n](#operated-with-n8n)).
 
 Built by Abhishek Katta with Claude Code and n8n. Portfolio: [abhishekkatta.netlify.app](https://abhishekkatta.netlify.app).
 
 ## Use cases
 
-- **Retrieve sanitised knowledge:** Give AI assistants project knowledge they can quote, without exposing personal or commercial data.
-- **Reuse lessons across projects:** A card written by one team answers the next team's question.
+- **Retrieve sanitised knowledge:** AI assistants can quote project knowledge without exposing personal or commercial data.
+- **Shared async learning across projects:** A person from a different team can learn async from another team, instead of word-of-mouth learnings.
 - **Self-serve onboarding:** A new team member can query the knowledge base to get up to speed, saving productive hours for the team.
-- **Transparent conflict-flagging:** Show where documents disagree, instead of letting an AI assistant quietly pick one side.
+- **Transparent conflict-flagging:** Show conflicts between documents to a person, instead of letting an AI assistant make a decision.
 
-## Why I built this
+## Core Benefits
 
 - **One GenAI setup:** To see how one Claude setup could serve both a project team and the whole company: shared context for the team, and a knowledge base anyone can ask questions.
 - **Summarise once, read many:** Reading documents for every question is slow and expensive. I designed the brain to read only what changed since the last refresh, use a small, cheap AI model to pull out the facts, and answer from the brief before opening the original documents.
-- **Eval set for trust:** I built evidence by hiding the failures a real company fears most in the test documents such as leaked personal data, disagreements settled without anyone noticing, and made-up facts, and scored every run.
+- **Eval set for trust:** I built evidence by hiding the failures a real company fears most in the test documents such as leaked personal data,  made-up facts, and ambiguous conflicts resolved without flagging them, and then scored each iteration.
 
 ## How it works
 
 ![Five steps: collect documents, draft cards with Claude Haiku, redact confidential details, a person approves the pull request, then people and AI assistants ask questions.](assets/how-it-works.svg)
 
-The capture job opens a pull request (PR) on GitHub to propose a change for review. A person merges it to accept the change.
+The capture job opens a pull request (PR) on GitHub to propose a change for review. A person accepts this change by merging the PR.
 
 <details>
 <summary>Show which stand-in replaces each company system</summary>
@@ -62,25 +62,25 @@ The capture job opens a pull request (PR) on GitHub to propose a change for revi
 
 ## Key design choices
 
-- **Rules in files, not prompts.** [`CLAUDE.md`](CLAUDE.md) has the card format, the 7 redaction rules (what to remove) and the rule for disagreements. See capture steps in [`.claude/agents/card-extractor.md`](.claude/agents/card-extractor.md).
+- **Rules in files instead of prompts.** See the card format in [`CLAUDE.md`](CLAUDE.md), the 7 redaction rules (what to remove), and the rule for conflicts. See the capture steps in [`.claude/agents/card-extractor.md`](.claude/agents/card-extractor.md).
 - **Small model, narrow job.** Claude Haiku, a small and cheap model, pulls out the facts. It reads only what changed since the last run. [`log.md`](log.md) records where the last run stopped.
-- **Show disagreements, do not resolve them.** When two documents disagree and neither replaces the other, the brief lists both under "Open conflicts". When a later document clearly states a change, the brief records the new fact and marks the old one as replaced.
+- **Show conflicts, do not resolve them.** When two documents disagree and neither replaces the other, the brief lists both under "Open conflicts". When a later document clearly states a change, the brief records the new fact and marks the old one as replaced.
 - **Approval is a merge.** Capture opens a pull request. The `main` branch, the approved version, never holds an unapproved card.
 
 ## Operated with n8n
 
-n8n is a workflow automation tool. The same capture and question-answering steps also run as four n8n workflows, with no Claude Code session. The workflow exports and an import guide are in [`n8n/`](n8n/).
+n8n is a workflow automation tool. The same capture and question-answering steps also run as four n8n workflows, with no Claude Code session. See [`n8n/`](n8n/) for the workflow exports and an import guide.
 
-- **W1 Capture:** when a new Google Doc appears in the project folder, n8n sends it to Claude Haiku with the redaction rules, then runs the same pattern check as [`scripts/redaction_check.py`](scripts/redaction_check.py). A clean card opens a pull request. If the lesson cannot be written without confidential details, the document is held and gets no card.
-- **W2 Error alerts:** if W1, W3 or W3a fails during a real run, n8n emails me the failed step, the error and a link to the run.
-- **W3 Ask the brain:** an MCP server, protected by a secret access key (a Bearer token). MCP, the Model Context Protocol, is the standard way AI assistants connect to outside tools. W3 offers two tools: `search_approved_cards` and `get_brief`. Both read only the approved version on `main`, so an assistant sees a card only after a person merges it.
-- **W3a Card search:** the keyword search behind `search_approved_cards`. It returns up to 3 cards with their IDs, or "No approved learning covers this."
+- **W1 Capture:** When a new Google Doc appears in the project folder, n8n sends it to Claude Haiku with the redaction rules, then runs the same pattern check as [`scripts/redaction_check.py`](scripts/redaction_check.py). A clean card then opens a pull request. If the lesson cannot be written without confidential details, the document is held and gets no card.
+- **W3 Ask the brain:** W3 uses a Model Context Protocol (MCP) server, protected by a secret access key (a Bearer token), to offer two tools: `search_approved_cards` and `get_brief`. Both read only the approved version on the `main` Github branch, so an assistant sees only person-reviewed cards.
+- **W3a Card search:** The keyword search powering `search_approved_cards`. It returns up to 3 cards with their IDs, or "No approved learning covers this."
+- **W2 Error alerts:** if W1, W3 or W3a fails during a real run, n8n sends the failed step, the error, and a link to the failed run to a support email ID. 
 
-W1 writes cards only. The Claude Code job still rebuilds the brief.
+Note: W1 only writes cards. The Claude Code job still rebuilds the brief.
 
 ### Prototype vs at scale
 
-The approval step stays the same at any size: an AI assistant reads only what a person approved. What changes is how documents come in, how confidential details are caught and how cards are found.
+The approval step is the same even when you scale: an AI assistant reads only what a person approved. However, the method to ingest documents, flagging confidential details, and searching for cards, all change.
 
 <details>
 <summary>Show all 10 parts and how each one changes at scale</summary>
@@ -100,18 +100,19 @@ The approval step stays the same at any size: an AI assistant reads only what a 
 
 </details>
 
-For more information on what this prototype does not prove, see [Known gaps](#known-gaps).
+For more information on what's out of scope for this prototype, see [Known gaps](#known-gaps).
 
 ## How I tested it
 
 > [!NOTE]
-> All project data in this repo is fictional. The names, contact details, passwords and commercial terms are planted for the redaction test.
+> All project data in this repo is fictional. The names, contact details, passwords and commercial terms have been fabricated.
 
-The test project is "Project Alpha": a utility company moving its smart-meter readings to a new real-time billing system. Its documents hide things the job must handle:
+"Project Alpha" is the test project: a utility company moving its smart-meter readings to a new real-time billing system. Its documents have confidential information our company brain's capture job must handle:
 
-- **Redaction:** 20 fake confidential details (phone number, home address, health, pay, performance, date of birth, passwords, access tokens, customer account, contract value, profit margin, talk of switching suppliers, an invoice dispute) and 11 people's names.
-- **Judgement:** 3 places where documents disagree, 1 fact that a later document replaced, and 8 lessons a careful reader should find.
-- **Answer key:** [`tests/answers/`](tests/answers/). The capture job is told never to read `tests/`.
+- **Redaction:** 11 people's names, and 20 fake confidential details (phone number, home address, health, pay, performance, date of birth, passwords, access tokens, customer account, contract value, profit margin, talk of switching suppliers, an invoice dispute).
+- **Judgement:** 3 places where documents show conflicting information, 1 fact that a later document replaced, and 8 lessons a careful reader would find.
+- **Answer key:** [`tests/answers/`](tests/answers/). 
+Note: The capture job never reads `tests/`.
 - **Unseen test set:** 2 more Drive documents and 1 issue with new kinds of hidden details, an answer key written before any run saw them, and one trap (the same date written two ways).
 
 [`tests/score.py`](tests/score.py) checks redaction and names automatically, and lists the judgement tests for a person to mark. Each round's marks and scores are saved in [`tests/results/`](tests/results/).
@@ -121,27 +122,26 @@ The test project is "Project Alpha": a utility company moving its smart-meter re
 | Round | Change | Redaction | Names leaked | Judgement tests |
 |---|---|---|---|---|
 | 1 | First version | 20/20 | 0 | 8/12 |
-| 2 | New rules for disagreements and lessons | 20/20 | 0 | 11/12 |
+| 2 | New rules for conflicts and lessons | 20/20 | 0 | 11/12 |
 | 3 | Clearer wording for disagreements, after reviewer feedback | 20/20 | 0 | 11/12, less clutter |
 | 4 | **Unseen documents, rules locked** | **6/6** | **0** | **7/7** |
 
-Each round has a page in [`iterations/`](iterations/) with what failed, the exact rule change, the score after and the cost. Round 3 is the clearest example: a reviewer said the list of disagreements was unclear, and the page shows the list before and after the rule change.
+Each round has a page in [`iterations/`](iterations/) with failures, the exact rule change, the score after and the cost. Round 3 is the clearest example: a reviewer said the list of conflicts was unclear, and the page shows the list before and after the rule change.
 
 ## Known gaps
 
 - **One disagreement in the main test set is still missed (C1).** C1 is not in the unseen set, which is why round 4 shows 7/7. A meeting note says "Agreed: retention is 30 days"; the design document says 90. The rule reads "agreed" as a change, so the brief treats 30 days as the new fact instead of flagging the disagreement.
-- **Made-up facts are not scored.** Round 1 made up 4 facts. One got past human review, and the question-answering Project then repeated it with confidence. A spot check of the current output found no unsourced numbers or reasons, but no script tests for this yet.
-- **Redaction protects the knowledge base, not the original documents.** A Project that read the Drive documents directly answered one question with a team member's leave dates. Access to the original documents needs its own controls.
+- **Made-up facts are not scored.** Round 1 made up 4 facts. A human review missed one of them, and a user's query on a Claude Project repeated this fact with confidence. A spot check of the current output found no unsourced numbers or reasons, but no script tests for this yet.
+- **Redaction protects the knowledge base, not the original documents.** A Project that read the Drive documents directly answered one question with a team member's leave dates. The company brain needs controls for access to the original documents.
 
 <details>
 <summary>Show 6 more gaps</summary>
 
-- **The one-page brief loses history.** The 600-word limit pushed older, replaced dates out of the brief in round 4. The cards still hold them.
+- **The one-page brief loses history.** The 600-word limit pushed older, replaced dates out of the brief in round 4. The cards still hold this information.
 - **Rounds 2 and 3 were tuned on the same test they were scored on.** Round 4 is the only unseen test, and the same person wrote its documents and the rules.
 - **A person, not a script, marks the judgement tests.**
-- **Cost doubled** from round 1 to round 2 as the rules grew: from about 59,000 to 115,000 Haiku tokens for a full rebuild, and 93,000 for a small update. Tokens are the units AI models charge by.
-- **The cost test has not been run.** [`tests/eval_questions.md`](tests/eval_questions.md) compares answering from the brief with answering from the original documents.
-- **One-person simulation.** No real user roles, single sign-on, permission-aware search, Microsoft 365 or ticketing system. The stand-ins show the shape, not the scale.
+- **Cost doubled** from round 1 to round 2 as the rules grew: from about 59,000 to 115,000 Haiku tokens for a full rebuild, and 93,000 for a small update. - **The cost test has not been run.** [`tests/eval_questions.md`](tests/eval_questions.md) compares answering from the brief with answering from the original documents.
+- **One-person simulation.** No real user roles, single sign-on, permission-aware search, Microsoft 365 or ticketing system. The stand-ins show the solution shape, they do not indicate what happens at scale.
 
 </details>
 
@@ -150,7 +150,7 @@ Each round has a page in [`iterations/`](iterations/) with what failed, the exac
 <details>
 <summary>Show what each file and folder holds</summary>
 
-| Path | What it is |
+| Path | Description |
 |---|---|
 | [`CLAUDE.md`](CLAUDE.md) | The rules: card format, what to remove and how to handle disagreements |
 | [`brief.md`](brief.md) | The current project brief |
@@ -182,8 +182,7 @@ You need Claude Code, the GitHub CLI, Python 3 and the Google Drive connector, p
 1. Run `/capture` in Claude Code in this folder. It opens a pull request with new cards and a fresh brief.
 2. Review the pull request. Merge it to approve, or close it to reject.
 3. Run `python tests/score.py`, then mark the judgement tests it prints. Add `--save <run>` to keep the record.
-4. Run `/lint-wiki`. It writes [`lint-report.md`](lint-report.md): disagreements, out-of-date claims, cards nothing links to, and duplicates.
-5. Optional: create the claude.ai Projects "Alpha" and "Ask the Org" from [`project-instructions/`](project-instructions/) to ask questions over the brief and the cards.
+4. Run `/lint-wiki`. It writes [`lint-report.md`](lint-report.md): conflicts, out-of-date claims, unlinked cards, and duplicates.
 
 </details>
 
