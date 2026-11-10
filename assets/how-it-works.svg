@@ -1,20 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 330" width="1200" height="330" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 424" width="1200" height="424" role="img" aria-labelledby="title desc">
   <title id="title">How the company brain works</title>
-  <desc id="desc">Five steps. Collect: Drive documents, issues, design decisions and code. Draft: Claude Haiku reads only what changed and drafts cards and a brief. Redact: personal and commercial details are removed, and a pattern check catches misses. Approve: a person reviews the pull request and merges it. Ask: people and AI assistants query approved cards only.</desc>
+  <desc id="desc">Five steps. Collect: Drive documents, issues, design decisions and code. Draft: Claude Haiku reads only what changed and drafts cards and a brief. Redact: personal and commercial details are removed, and a pattern check catches misses. Approve: a person reviews the pull request and merges it. Ask: people and AI assistants query approved cards only. A feedback loop runs from step 4 back to step 2: reviewer feedback and test scores change the rules in CLAUDE.md. A second loop, not built yet, runs from step 5 back to step 1: questions with no approved card show what to capture next.</desc>
   <style>
     text { font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
     .title { font-size: 18px; font-weight: 600; fill: #111827; }
     .cap { font-size: 14.5px; fill: #4B5563; }
     .num { font-size: 12px; font-weight: 700; fill: #FFFFFF; }
     .foot { font-size: 15px; font-weight: 600; fill: #065F46; }
+    .loop { font-size: 14px; font-weight: 600; fill: #3730A3; }
+    .plan { font-size: 14px; font-style: italic; fill: #6B7280; }
   </style>
   <defs>
     <marker id="chev" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="9" markerHeight="9" orient="auto">
       <path d="M 2 1 L 8 5 L 2 9" fill="none" stroke="#9CA3AF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
+    <marker id="headloop" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#4F46E5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="headplan" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#9CA3AF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
   </defs>
 
-  <rect x="0.5" y="0.5" width="1199" height="329" rx="16" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <rect x="0.5" y="0.5" width="1199" height="423" rx="16" fill="#FFFFFF" stroke="#E5E7EB"/>
 
   <!-- Connectors -->
   <path d="M 182 100 L 255 100 L 328 100" fill="none" stroke="#D1D5DB" stroke-width="2" marker-mid="url(#chev)"/>
@@ -72,6 +80,12 @@
   <text class="cap" x="1060" y="198" text-anchor="middle">People and AI assistants</text>
   <text class="cap" x="1060" y="218" text-anchor="middle">query approved cards only</text>
 
-  <line x1="48" y1="272" x2="1152" y2="272" stroke="#F3F4F6" stroke-width="1"/>
-  <text class="foot" x="600" y="302" text-anchor="middle">Nothing reaches step 5 without a person at step 4.</text>
+  <!-- Feedback loops -->
+  <path d="M 830 250 V 274 H 370 V 254" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linejoin="round" marker-end="url(#headloop)"/>
+  <text class="loop" x="600" y="296" text-anchor="middle">Feedback loop: reviewer feedback and test scores change the rules in CLAUDE.md</text>
+  <path d="M 1060 250 V 318 H 140 V 254" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-dasharray="6 5" stroke-linejoin="round" marker-end="url(#headplan)"/>
+  <text class="plan" x="600" y="340" text-anchor="middle">Not built yet: questions with no approved card show what to capture next</text>
+
+  <line x1="48" y1="368" x2="1152" y2="368" stroke="#F3F4F6" stroke-width="1"/>
+  <text class="foot" x="600" y="398" text-anchor="middle">Nothing reaches step 5 without a person at step 4.</text>
 </svg>

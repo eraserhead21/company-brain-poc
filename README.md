@@ -46,9 +46,9 @@ It runs in two modes:
 
 ## How it works
 
-![Five steps: collect documents, draft cards with Claude Haiku, redact confidential details, a person approves the pull request, then people and AI assistants ask questions.](assets/how-it-works.svg)
+![Five steps: collect documents, draft cards with Claude Haiku, redact confidential details, a person approves the pull request, then people and AI assistants ask questions. A feedback loop runs from approval back to drafting: reviewer feedback and test scores change the rules. A second loop, not built yet, would use questions with no approved card to show what to capture next.](assets/how-it-works.svg)
 
-*Figure 3. The five steps of the capture job. Nothing reaches step 5 without a person at step 4.*
+*Figure 3. The five steps of the capture job, and the feedback loop that improves its rules. Nothing reaches step 5 without a person at step 4.*
 
 The capture job opens a pull request (PR) on GitHub to propose new cards and a fresh brief. A person approves them by merging the PR. The prototype uses simple stand-ins for company systems, such as a Google Drive folder for the project file share. For every stand-in, see [Prototype vs at scale](#prototype-vs-at-scale).
 
