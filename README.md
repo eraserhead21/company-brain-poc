@@ -46,19 +46,7 @@ Abhishek Katta built this with Claude Code and n8n. Portfolio: [abhishekkatta.ne
 
 The capture job opens a pull request (PR) on GitHub to propose a change for review. A person accepts this change by merging the PR.
 
-<details>
-<summary>Show which stand-in replaces each company system</summary>
-
-| In a real company | In this POC |
-|---|---|
-| Project file share | A Google Drive folder (copies in [`sources/`](sources/)) |
-| Team chat | A Drive document holding a chat log |
-| Issue tracker | GitHub Issues on this repo |
-| Team code and design records | This repo: [`src/`](src/), [`docs/`](docs/), [`decisions/`](decisions/) |
-| Company knowledge base | [`learnings/approved/`](learnings/approved/) |
-| Company search | A claude.ai Project (a Claude workspace limited to chosen files) that knows only the approved cards, or any AI assistant connected through the n8n workflow W3 |
-
-</details>
+This prototype uses simple stand-ins for company systems, such as a Google Drive folder for the project file share. To see every stand-in and how each part changes at scale, see [Prototype vs at scale](#prototype-vs-at-scale).
 
 ## Key design choices
 
@@ -80,7 +68,9 @@ n8n is a workflow automation tool. The same capture and question-answering steps
 > - MCP is the standard way AI assistants connect to outside tools.
 > - W1 only writes cards. The Claude Code job still rebuilds the brief.
 
-### Prototype vs at scale
+## Prototype vs at scale
+
+The prototype runs on stand-ins for company systems: a Drive folder for the file share, GitHub for the issue tracker and the knowledge base, and a claude.ai Project or W3 for company search. The table lists each stand-in under the part it serves.
 
 The approval step stays the same at any scale: an AI assistant reads only what a person approved. What changes is how documents come in, how the system catches confidential details, and how people find cards.
 
@@ -89,12 +79,12 @@ The approval step stays the same at any scale: an AI assistant reads only what a
 
 | Step | In this prototype | At scale |
 |---|---|---|
-| Sources | n8n checks one Drive folder every minute. It picks up new documents only, not edits. | Drive, SharePoint, and Slack notify the system as soon as something changes. The system captures an edited document again. |
+| Sources | Stand-ins: a Google Drive folder for the project file share (copies in [`sources/`](sources/)), a Drive document holding a chat log for team chat, GitHub Issues on this repo for the issue tracker, and this repo ([`src/`](src/), [`docs/`](docs/), [`decisions/`](decisions/)) for team code and design records.<br>n8n checks the Drive folder every minute. It picks up new documents only, not edits. | Drive, SharePoint, and Slack notify the system as soon as something changes. The system captures an edited document again. |
 | Redaction | Rules in the instructions to Claude, then a pattern check. Claude sees the original text. | A dedicated tool for finding personal and sensitive data (such as Google Sensitive Data Protection, Microsoft Purview, or Presidio) removes it before Claude sees the text. The rules and the pattern check stay as extra layers. The AI provider agrees not to store the data. |
 | Extraction | One card per document, from the first 60,000 characters. | The system splits long documents into parts, writes several cards per document, and checks every card against a fixed format. It compares each new card with existing cards to avoid duplicates. The test set runs again whenever the instructions change. |
 | Held documents | The workflow stops and tells nobody. | A review list records why W1 held the document and tells its owner. |
 | Approval | One person merges a pull request on GitHub. | The same merge, with a named owner for each topic. Reviewers who do not use GitHub approve in Slack or email, through n8n's built-in approval step. |
-| Search | Simple keyword matching. Each question reads every card from GitHub. | The system indexes cards when a person approves them, so search can match meaning as well as keywords ("leave" also finds "absence"). Answers still cite card IDs. |
+| Search | Stand-ins: [`learnings/approved/`](learnings/approved/) for the company knowledge base. For company search, a claude.ai Project (a Claude workspace limited to chosen files) that knows only the approved cards, or any AI assistant connected through the n8n workflow W3.<br>Simple keyword matching. Each question reads every card from GitHub. | The system indexes cards when a person approves them, so search can match meaning as well as keywords ("leave" also finds "absence"). Answers still cite card IDs. |
 | Freshness | Cards never expire. The check for out-of-date claims (`/lint-wiki`) runs only when someone starts it. | Each card has an owner and a review date. The check runs on a schedule, and a newer card retires the one it replaces. |
 | Access | One shared access key. Everyone with the key sees every approved card. | Each person signs in and sees only the cards their role allows, using each card's `sensitivity` field. |
 | Operations | An email when a workflow fails. One n8n trial account. | Automatic retries, alerts in Slack or to the on-call person, extra capacity for busy periods, separate test and live setups, and keys in a secure vault. |
