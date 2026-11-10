@@ -30,7 +30,7 @@ This proof of concept (POC) reads one project's documents and writes two things:
 It runs in two modes:
 
 1. A Claude Code job (`/capture`) that proposes new cards and a fresh brief. In this POC, I start it by hand. At scale, it runs on a schedule.
-2. Four automated n8n workflows (see [Operated with n8n](#operated-with-n8n)).
+2. Four automated n8n workflows (see [Operated with n8n](#operated-with-n8n)), plus a feedback loop that turns questions and ratings into eval cases (see [Feedback loop](#feedback-loop)).
 
 ## Use cases
 
@@ -46,9 +46,9 @@ It runs in two modes:
 
 ## How it works
 
-![Five steps: collect documents, draft cards with Claude Haiku, redact confidential details, a person approves the pull request, then people and AI assistants ask questions. A feedback loop runs from approval back to drafting: reviewer feedback and test scores change the rules. A second loop, not built yet, would use questions with no approved card to show what to capture next.](assets/how-it-works.svg)
+![Five steps: collect documents, draft cards with Claude Haiku, redact confidential details, a person approves the pull request, then people and AI assistants ask questions. A feedback loop runs from approval back to drafting: reviewer feedback and test scores change the rules. A second loop runs from asking back to collecting: coverage gaps and user ratings become eval cases that a person approves.](assets/how-it-works.svg)
 
-*Figure 3. The five steps of the capture job, and the feedback loop that improves its rules. Nothing reaches step 5 without a person at step 4.*
+*Figure 3. The five steps of the capture job, and the two feedback loops that improve it. Nothing reaches step 5 without a person at step 4.*
 
 The capture job opens a pull request (PR) on GitHub to propose new cards and a fresh brief. A person approves them by merging the PR. The prototype uses simple stand-ins for company systems, such as a Google Drive folder for the project file share. For every stand-in, see [Prototype vs at scale](#prototype-vs-at-scale).
 
@@ -101,6 +101,36 @@ The four capture fixes run from a blocked Drive credential to a reply-parsing bu
 
 </details>
 
+## Feedback loop
+
+The brain learns from use: questions, ratings, and a regression eval set flow back to a person, who approves every change.
+
+<details>
+<summary>Show how the feedback loop works</summary>
+
+| Part | What it does | Workflow |
+|---|---|---|
+| **Production log** | Writes each question to an n8n Data Table after the W1 redaction check, with the card IDs returned and "hit" or "coverage gap". | W3a Card search (logged) |
+| **User ratings** | A third MCP tool, `rate_answer`, records "helpful", "wrong", "stale", or "missing" for an answer, after redaction. | W3b Rate answer |
+| **Human review** | Every Monday, W4 counts the coverage gaps and poor ratings, and opens a pull request that proposes eval cases in `tests/answers/feedback_cases.json`. Merging the PR approves the cases. W4 never writes to `main`. | W4 Feedback review |
+| **Regression eval set** | W4b reruns every approved case through the logged search and records pass or fail. Its first run is the baseline. | W4b Regression eval |
+
+A question that held personal data, such as "When was the engineer on sick leave?", becomes a guardrail case: it must stay refused.
+
+> [!NOTE]
+> This is the outer feedback loop: signals from use become eval cases, and a person approves each change. It is not in-run feedback (the evaluator-optimizer pattern, where one model call critiques another within a single run). The POC does not use that pattern.
+
+**Tested on 2026-11-10 with fictional test questions:**
+
+- 5 questions wrote 5 log rows, each with the correct hit or coverage-gap flag.
+- A planted phone number was stored as `[redacted:phone]`.
+- One rating wrote one row.
+- W4 opened [PR #26](https://github.com/eraserhead21/company-brain-poc/pull/26) with 3 proposed cases, and `main` stayed unchanged.
+
+The workflow sources are in [`n8n/sdk/`](n8n/sdk/).
+
+</details>
+
 ## Prototype vs at scale
 
 The approval step stays the same at any scale: an AI assistant reads only what a person approved. What changes is how documents come in, how the system catches confidential details, and how people find cards. The table also lists the stand-in that the prototype uses for each company system.
@@ -119,7 +149,7 @@ The approval step stays the same at any scale: an AI assistant reads only what a
 | Freshness | Cards never expire. The check for out-of-date claims (`/lint-wiki`) runs only when someone starts it. | Each card has an owner and a review date. The check runs on a schedule, and a newer card retires the one it replaces. |
 | Access | One shared access key. Everyone with the key sees every approved card. | Each person signs in and sees only the cards their role allows, using each card's `sensitivity` field. |
 | Operations | An email when a workflow fails. One n8n trial account. | Automatic retries, alerts in Slack or to the on-call person, extra capacity for busy periods, separate test and live setups, and keys in a secure vault. |
-| Coverage and audit | Only n8n's run history stores questions. Nobody reviews them. | The system logs every question with who asked and which cards answered. It counts each "No approved learning covers this", which shows what the brain is missing. |
+| Coverage and audit | W3a (logged) writes each question, redacted, to an n8n Data Table with "hit" or "coverage gap". W4 reviews the gaps and ratings weekly and proposes eval cases in a PR. | The system logs every question with who asked and which cards answered. It counts each "No approved learning covers this", which shows what the brain is missing. |
 
 </details>
 
@@ -169,7 +199,7 @@ Each round has a page in [`iterations/`](iterations/) with its failures, the exa
 The biggest gap: the brief still misses one conflict in the main test set.
 
 <details>
-<summary>Show all 9 gaps</summary>
+<summary>Show all 10 gaps</summary>
 
 - **One missed conflict (C1).** A meeting note says "Agreed: retention is 30 days"; the design document says 90. The rule reads "agreed" as a change, so the brief records 30 days as the new fact. C1 is not in the unseen set, so round 4 shows 7/7.
 - **No test for made-up facts.** Round 1 made up 4 facts. A human review missed one, and a Claude Project then repeated it with confidence. A spot check of the current output found no unsourced numbers or reasons, but no script tests for this.
@@ -179,6 +209,7 @@ The biggest gap: the brief still misses one conflict in the main test set.
 - **A person, not a script, marks the judgement tests.**
 - **Cost doubled as the rules grew.** A full rebuild went from about 59,000 Haiku tokens in round 1 to 115,000 in round 2. A small update takes 93,000.
 - **The cost test has not run.** [`tests/eval_questions.md`](tests/eval_questions.md) compares answering from the brief with answering from the original documents.
+- **The feedback loop has run on test data only.** The live W3 still uses the unlogged search until it swaps in after the demo. W4b has no baseline until a person merges the first feedback PR.
 - **One-person simulation.** No real user roles, single sign-on, permission-aware search, Microsoft 365, or ticketing system. The stand-ins show the shape of the solution, not how it behaves at scale.
 
 </details>
@@ -201,7 +232,7 @@ The biggest gap: the brief still misses one conflict in the main test set.
 | [`.claude/`](.claude/) | The Claude Code commands for capture and checking, and the small-model helpers they use |
 | [`project-instructions/`](project-instructions/) | Instructions for the two claude.ai Projects |
 | [`log.md`](log.md) | A log of every run: counts, cost, and where the last run stopped |
-| [`n8n/`](n8n/) | Exports of the four n8n workflows, with an import guide |
+| [`n8n/`](n8n/) | Exports of the four core n8n workflows, the feedback-loop workflow sources in [`n8n/sdk/`](n8n/sdk/), and an import guide |
 | [`assets/`](assets/) | The diagrams and the n8n screenshot in this README |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to run, review, and extend the POC |
 | [`poc-config.json`](poc-config.json) | The Drive folder ID, and which Drive document matches which file in `sources/` |

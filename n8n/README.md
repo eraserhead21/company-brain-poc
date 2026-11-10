@@ -11,6 +11,21 @@ The company brain runs on n8n Cloud with four workflows. These are exports with 
 
 The rule all four follow: agents read only what a person approved. A card reaches `main` only when a person merges its pull request.
 
+## Feedback loop workflows
+
+These workflows add the outer feedback loop. Their sources are in [`sdk/`](sdk/) as n8n Workflow SDK code, with credential, table, and workflow IDs replaced by placeholders. Recreate them with the n8n MCP server's `create_workflow_from_code` tool, then pick your own credentials.
+
+| File | Workflow | What it does |
+|---|---|---|
+| `sdk/w3a-card-search-logged.ts` | W3a Card search (logged) | The W3a search, plus one redacted row per question in the `cb_question_log` Data Table. |
+| `sdk/w3b-rate-answer.ts` | W3b Rate answer | The sub-workflow behind the `rate_answer` tool. Writes one redacted row to `cb_answer_ratings`. |
+| `sdk/w3-ask-the-brain-feedback.ts` | W3 Ask the brain (feedback) | W3 with three tools: `search_approved_cards` (logged), `rate_answer`, and `get_brief`. |
+| `sdk/w4-feedback-review.ts` | W4 Feedback review | Every Monday, proposes eval cases from coverage gaps and ratings in a PR on a `feedback/` branch. |
+| `sdk/w4b-regression-eval.ts` | W4b Regression eval | Reruns the approved cases on `main` and writes pass or fail to `cb_regression_runs`. |
+| `sdk/w4t-feedback-test-harness.ts` | W4t Feedback test harness | Sends 5 fictional test questions and 1 rating through the loop. |
+
+Create the three Data Tables first: `cb_question_log`, `cb_answer_ratings`, and `cb_regression_runs`. The column names are in the insert nodes.
+
 ## Import
 
 1. In n8n, create a workflow and use **Import from File** for each JSON.

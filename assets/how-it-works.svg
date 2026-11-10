@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 424" width="1200" height="424" role="img" aria-labelledby="title desc">
   <title id="title">How the company brain works</title>
-  <desc id="desc">Five steps. Collect: Drive documents, issues, design decisions and code. Draft: Claude Haiku reads only what changed and drafts cards and a brief. Redact: personal and commercial details are removed, and a pattern check catches misses. Approve: a person reviews the pull request and merges it. Ask: people and AI assistants query approved cards only. A feedback loop runs from step 4 back to step 2: reviewer feedback and test scores change the rules in CLAUDE.md. A second loop, not built yet, runs from step 5 back to step 1: questions with no approved card show what to capture next.</desc>
+  <desc id="desc">Five steps. Collect: Drive documents, issues, design decisions and code. Draft: Claude Haiku reads only what changed and drafts cards and a brief. Redact: personal and commercial details are removed, and a pattern check catches misses. Approve: a person reviews the pull request and merges it. Ask: people and AI assistants query approved cards only. A feedback loop runs from step 4 back to step 2: reviewer feedback and test scores change the rules in CLAUDE.md. A second loop runs from step 5 back to step 1: coverage gaps and user ratings become eval cases that a person approves.</desc>
   <style>
     text { font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
     .title { font-size: 18px; font-weight: 600; fill: #111827; }
@@ -82,9 +82,9 @@
 
   <!-- Feedback loops -->
   <path d="M 830 250 V 274 H 370 V 254" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linejoin="round" marker-end="url(#headloop)"/>
-  <text class="loop" x="600" y="296" text-anchor="middle">Feedback loop: reviewer feedback and test scores change the rules in CLAUDE.md</text>
-  <path d="M 1060 250 V 318 H 140 V 254" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-dasharray="6 5" stroke-linejoin="round" marker-end="url(#headplan)"/>
-  <text class="plan" x="600" y="340" text-anchor="middle">Not built yet: questions with no approved card show what to capture next</text>
+  <text class="loop" x="600" y="296" text-anchor="middle">Rule changes: reviewer feedback and test scores change the rules in CLAUDE.md</text>
+  <path d="M 1060 250 V 318 H 140 V 254" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linejoin="round" marker-end="url(#headloop)"/>
+  <text class="loop" x="600" y="340" text-anchor="middle">Usage feedback: coverage gaps and user ratings become eval cases that a person approves</text>
 
   <line x1="48" y1="368" x2="1152" y2="368" stroke="#F3F4F6" stroke-width="1"/>
   <text class="foot" x="600" y="398" text-anchor="middle">Nothing reaches step 5 without a person at step 4.</text>
