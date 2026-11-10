@@ -41,11 +41,11 @@
   <text class="cap" x="144" y="264">get up to speed, saving productive hours for the team.</text>
 
   <!-- 4: Transparent conflict-flagging -->
-  <rect x="612" y="172" width="556" height="120" rx="12" fill="#FFFBEB" stroke="#FDE68A"/>
-  <circle cx="672" cy="232" r="32" fill="#FEF3C7" stroke="#FCD34D" stroke-width="1.5"/>
-  <path d="M 672 217 L 687 244 H 657 Z" fill="none" stroke="#B45309" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M 672 227 V 235" stroke="#B45309" stroke-width="2.2" stroke-linecap="round"/>
-  <circle cx="672" cy="240" r="1.4" fill="#B45309"/>
+  <rect x="612" y="172" width="556" height="120" rx="12" fill="#F9FAFB" stroke="#E5E7EB"/>
+  <circle cx="672" cy="232" r="32" fill="#EEF2FF" stroke="#C7D2FE" stroke-width="1.5"/>
+  <path d="M 672 217 L 687 244 H 657 Z" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M 672 227 V 235" stroke="#4F46E5" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="672" cy="240" r="1.4" fill="#4F46E5"/>
   <text class="title" x="724" y="218">Transparent conflict-flagging</text>
   <text class="cap" x="724" y="244">Conflicts between documents go to a person,</text>
   <text class="cap" x="724" y="264">instead of an AI assistant making the decision.</text>

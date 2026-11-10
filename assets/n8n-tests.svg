@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 310" width="1200" height="310" role="img" aria-labelledby="title desc">
+  <title id="title">What I tested in n8n</title>
+  <desc id="desc">Three tests. Capture, W1: the first live run on new Drive documents failed 4 times; I fixed each failure, then W1 opened a pull request. Questions over MCP, W3: from Claude Desktop, W3 answered from an approved card and cited its ID, and it refused "When was the engineer on sick leave?" because no approved card covers it. Error alerts, W2: a scheduled workflow that always fails triggered W2, and the email arrived within 2 minutes with the failed step and a link to the run.</desc>
+  <style>
+    text { font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+    .title { font-size: 18px; font-weight: 600; fill: #111827; }
+    .wf { font-size: 13px; font-weight: 600; fill: #6B7280; }
+    .label { font-size: 11.5px; font-weight: 600; letter-spacing: 1.3px; fill: #6B7280; }
+    .cap { font-size: 14.5px; fill: #374151; }
+  </style>
+  <defs>
+    <g id="ok">
+      <circle cx="0" cy="0" r="8" fill="#059669"/>
+      <path d="M -3.6 0 L -1 2.6 L 3.8 -2.6" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g id="no">
+      <circle cx="0" cy="0" r="8" fill="#DC2626"/>
+      <path d="M -3.4 0 H 3.4" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+    </g>
+  </defs>
+
+  <rect x="0.5" y="0.5" width="1199" height="309" rx="16" fill="#FFFFFF" stroke="#E5E7EB"/>
+
+  <!-- Card 1: Capture -->
+  <rect x="32" y="32" width="364" height="246" rx="12" fill="#F9FAFB" stroke="#E5E7EB"/>
+  <circle cx="80" cy="78" r="26" fill="#EEF2FF" stroke="#C7D2FE" stroke-width="1.5"/>
+  <path d="M 70 67 H 84 L 90 73 V 89 H 70 Z" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M 84 67 V 73 H 90" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linejoin="round"/>
+  <text class="title" x="120" y="74">Capture</text>
+  <text class="wf" x="120" y="94">W1</text>
+  <text class="label" x="56" y="138">TEST</text>
+  <text class="cap" x="56" y="160">First live run on new Drive documents</text>
+  <text class="label" x="56" y="196">RESULT</text>
+  <use href="#ok" x="64" y="214"/>
+  <text class="cap" x="82" y="219">Failed 4 times. I fixed each failure,</text>
+  <text class="cap" x="82" y="239">then W1 opened a pull request.</text>
+
+  <!-- Card 2: Questions over MCP -->
+  <rect x="418" y="32" width="364" height="246" rx="12" fill="#F9FAFB" stroke="#E5E7EB"/>
+  <circle cx="466" cy="78" r="26" fill="#EEF2FF" stroke="#C7D2FE" stroke-width="1.5"/>
+  <path d="M 458 67 H 474 A 4 4 0 0 1 478 71 V 81 A 4 4 0 0 1 474 85 H 464 L 457 91 V 85 A 4 4 0 0 1 454 81 V 71 A 4 4 0 0 1 458 67 Z" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linejoin="round"/>
+  <text class="title" x="506" y="74">Questions over MCP</text>
+  <text class="wf" x="506" y="94">W3, from Claude Desktop</text>
+  <text class="label" x="442" y="138">TEST</text>
+  <text class="cap" x="442" y="160">One covered and one uncovered question</text>
+  <text class="label" x="442" y="196">RESULT</text>
+  <use href="#ok" x="450" y="214"/>
+  <text class="cap" x="468" y="219">Answered from a card, cited its ID</text>
+  <use href="#no" x="450" y="239"/>
+  <text class="cap" x="468" y="244">Refused "When was the engineer on sick</text>
+  <text class="cap" x="468" y="264">leave?" No approved card covers it.</text>
+
+  <!-- Card 3: Error alerts -->
+  <rect x="804" y="32" width="364" height="246" rx="12" fill="#F9FAFB" stroke="#E5E7EB"/>
+  <circle cx="852" cy="78" r="26" fill="#EEF2FF" stroke="#C7D2FE" stroke-width="1.5"/>
+  <rect x="840" y="69" width="24" height="18" rx="3" fill="none" stroke="#4F46E5" stroke-width="2"/>
+  <path d="M 841 71 L 852 79.5 L 863 71" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linejoin="round"/>
+  <text class="title" x="892" y="74">Error alerts</text>
+  <text class="wf" x="892" y="94">W2</text>
+  <text class="label" x="828" y="138">TEST</text>
+  <text class="cap" x="828" y="160">A scheduled workflow that always fails</text>
+  <text class="label" x="828" y="196">RESULT</text>
+  <use href="#ok" x="836" y="214"/>
+  <text class="cap" x="854" y="219">Email within 2 minutes, with the</text>
+  <text class="cap" x="854" y="239">failed step and a link to the run</text>
+</svg>

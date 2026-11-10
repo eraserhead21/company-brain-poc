@@ -27,7 +27,7 @@ This proof of concept (POC) reads one project's documents and writes two things:
 
 It runs in two modes:
 
-1. A Claude Code job that you run on demand.
+1. A Claude Code job (`/capture`) that proposes new cards and a fresh brief. In this POC, I start it by hand. At scale, it runs on a schedule.
 2. Four automated n8n workflows (see [Operated with n8n](#operated-with-n8n)).
 
 ## Use cases
@@ -37,7 +37,7 @@ It runs in two modes:
 ## Why I built this
 
 - **One GenAI setup:** To see how one Claude setup could serve both a project team and the whole company: shared context for the team, and a knowledge base anyone can ask questions.
-- **Summarise once, read many:** Reading documents for every question is slow and expensive. I designed the brain to read only what changed since the last refresh, use a small, cheap AI model to pull out the facts, and answer from the brief before opening the original documents.
+- **Summarise once, read many:** Reading every document for every question is slow and expensive. The brain reads only what changed, uses a small, cheap model to pull out the facts, and answers from the brief first.
 - **Eval set for trust:** I built evidence by hiding the failures a real company fears most in the test documents, such as leaked personal data, made-up facts, and conflicts settled without anyone noticing. I then scored each iteration.
 
 ## How it works
@@ -78,9 +78,9 @@ n8n is a workflow automation tool. The same capture and question-answering steps
 
 ### What I tested in n8n
 
-- **Capture:** The first live run of W1 failed four times. I fixed each failure, from a blocked Drive credential to a reply-parsing bug. See [Live fixes](n8n/README.md#live-fixes).
-- **Questions over MCP:** From Claude Desktop, W3 answered a question from an approved card and cited its ID. It refused "When was the engineer on sick leave?" because no approved card covers it.
-- **Error alerts:** A scheduled workflow that always fails triggered W2. The alert email arrived within 2 minutes, with the failed step and a link to the run.
+![Three tests. Capture (W1): the first live run on new Drive documents failed 4 times; I fixed each failure, then W1 opened a pull request. Questions over MCP (W3): from Claude Desktop, W3 answered from an approved card and cited its ID, and refused "When was the engineer on sick leave?" because no approved card covers it. Error alerts (W2): a scheduled workflow that always fails triggered W2, and the email arrived within 2 minutes with the failed step and a link to the run.](assets/n8n-tests.svg)
+
+The four capture fixes run from a blocked Drive credential to a reply-parsing bug. See [Live fixes](n8n/README.md#live-fixes).
 
 <details>
 <summary>Show the W1 capture workflow in n8n</summary>
@@ -115,6 +115,11 @@ For what this prototype does not prove, see [Known gaps](#known-gaps).
 
 ## How I tested it
 
+I planted the failures a company fears most in a fictional project, then scored each round against an answer key.
+
+<details>
+<summary>Show the test project and how it is scored</summary>
+
 > [!NOTE]
 > All project data in this repo is fictional. I fabricated the names, contact details, passwords, and commercial terms.
 
@@ -127,7 +132,14 @@ For what this prototype does not prove, see [Known gaps](#known-gaps).
 
 [`tests/score.py`](tests/score.py) checks redaction and names automatically, and lists the judgement tests for a person to mark. [`tests/results/`](tests/results/) holds each round's marks and scores.
 
+</details>
+
 ## Results
+
+Redaction held in all 4 rounds with 0 names leaked. Judgement tests rose from 8/12 to 11/12, then passed 7/7 on unseen documents.
+
+<details>
+<summary>Show the scores for each round</summary>
 
 | Round | Change | Redaction | Names leaked | Judgement tests |
 |---|---|---|---|---|
@@ -138,20 +150,23 @@ For what this prototype does not prove, see [Known gaps](#known-gaps).
 
 Each round has a page in [`iterations/`](iterations/) with its failures, the exact rule change, the score after, and the cost. Round 3 is the clearest example: a reviewer said the list of conflicts was unclear, and the page shows the list before and after the rule change.
 
+</details>
+
 ## Known gaps
 
-- **The brief still misses one conflict in the main test set (C1).** C1 is not in the unseen set, which is why round 4 shows 7/7. A meeting note says "Agreed: retention is 30 days"; the design document says 90. The rule reads "agreed" as a change, so the brief treats 30 days as the new fact instead of flagging the conflict.
-- **No test scores made-up facts.** Round 1 made up 4 facts. A human review missed one of them, and a user's query on a Claude Project repeated this fact with confidence. A spot check of the current output found no unsourced numbers or reasons, but no script tests for this yet.
-- **Redaction protects the knowledge base, not the original documents.** A Project that read the Drive documents directly answered one question with a team member's leave dates. The company brain needs controls for access to the original documents.
+The biggest gap: the brief still misses one conflict in the main test set.
 
 <details>
-<summary>Show 6 more gaps</summary>
+<summary>Show all 9 gaps</summary>
 
-- **The one-page brief loses history.** The 600-word limit pushed older, replaced dates out of the brief in round 4. The cards still hold this information.
-- **I tuned rounds 2 and 3 on the same test I scored them on.** Round 4 is the only unseen test, and the same person wrote its documents and the rules.
+- **One missed conflict (C1).** A meeting note says "Agreed: retention is 30 days"; the design document says 90. The rule reads "agreed" as a change, so the brief records 30 days as the new fact. C1 is not in the unseen set, so round 4 shows 7/7.
+- **No test for made-up facts.** Round 1 made up 4 facts. A human review missed one, and a Claude Project then repeated it with confidence. A spot check of the current output found no unsourced numbers or reasons, but no script tests for this.
+- **Redaction covers the knowledge base, not the original documents.** A Project that read the Drive documents directly gave out a team member's leave dates. The original documents need their own access controls.
+- **The brief loses history.** In round 4, the 600-word limit pushed older, replaced dates out of the brief. The cards still hold them.
+- **Same test for tuning and scoring.** I tuned rounds 2 and 3 on the test I scored them on. Round 4 is the only unseen test, and I wrote both its documents and the rules.
 - **A person, not a script, marks the judgement tests.**
-- **Cost doubled** from round 1 to round 2 as the rules grew: from about 59,000 to 115,000 Haiku tokens for a full rebuild, and 93,000 for a small update.
-- **I have not run the cost test yet.** [`tests/eval_questions.md`](tests/eval_questions.md) compares answering from the brief with answering from the original documents.
+- **Cost doubled as the rules grew.** A full rebuild went from about 59,000 Haiku tokens in round 1 to 115,000 in round 2. A small update takes 93,000.
+- **The cost test has not run.** [`tests/eval_questions.md`](tests/eval_questions.md) compares answering from the brief with answering from the original documents.
 - **One-person simulation.** No real user roles, single sign-on, permission-aware search, Microsoft 365, or ticketing system. The stand-ins show the shape of the solution, not how it behaves at scale.
 
 </details>
