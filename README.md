@@ -209,7 +209,7 @@ The biggest gap: the brief still misses one conflict in the main test set.
 - **A person, not a script, marks the judgement tests.**
 - **Cost doubled as the rules grew.** A full rebuild went from about 59,000 Haiku tokens in round 1 to 115,000 in round 2. A small update takes 93,000.
 - **The cost test has not run.** [`tests/eval_questions.md`](tests/eval_questions.md) compares answering from the brief with answering from the original documents.
-- **The feedback loop has run on test data only.** The live W3 still uses the unlogged search until it swaps in after the demo. W4b has no baseline until a person merges the first feedback PR.
+- **The feedback loop is new.** It went live on 2026-11-10 and has run only on fictional test questions. W4b has no baseline until a person merges the first feedback PR.
 - **One-person simulation.** No real user roles, single sign-on, permission-aware search, Microsoft 365, or ticketing system. The stand-ins show the shape of the solution, not how it behaves at scale.
 
 </details>
