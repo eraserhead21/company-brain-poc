@@ -10,6 +10,9 @@ brief, the cards or the relation ledger must hold for the test to pass.
                 states the new value; and no open conflict holds both values.
   learning      one card, or the brief, matches every pattern in "all".
   not_conflict  no bullet under "Open conflicts" matches every pattern.
+  scope         a scope relation in the ledger, or a bullet under "Scope
+                differences", matches every pattern, and no open conflict does.
+  ledger_supersession  the ledger holds a supersession from "old" to "new".
 
 Patterns are regular expressions, matched without regard to case. A test with
 no rule stays "unmarked" for a person.
@@ -91,8 +94,9 @@ def mark(item, out):
         for bullet in out.conflicts():
             if has_all(rule["all"], bullet):
                 return "pass", f"open conflict: {bullet[:80]}"
-        if rule.get("or"):
-            alt = mark({"auto": rule["or"]}, out)
+        alternatives = rule.get("or") or []
+        for other in alternatives if isinstance(alternatives, list) else [alternatives]:
+            alt = mark({"auto": other}, out)
             if alt[0] == "pass":
                 return "pass", f"alternative: {alt[1]}"
         return "fail", "no bullet under Open conflicts holds both claims"
@@ -113,6 +117,13 @@ def mark(item, out):
         if has_all(rule["all"], out.brief):
             return "pass", "brief"
         return "fail", "no card or brief text holds the lesson"
+    if kind == "ledger_supersession":
+        for r in out.relations:
+            if isinstance(r, dict) and r.get("type") == "supersession":
+                values = [str(c.get("value", "")) for c in r.get("claims", []) if isinstance(c, dict)]
+                if len(values) == 2 and has(rule["old"], values[0]) and has(rule["new"], values[1]):
+                    return "pass", f"ledger supersession {r.get('id', '')}"
+        return "fail", "no supersession in the ledger"
     if kind == "not_conflict":
         for bullet in out.conflicts():
             if has_all(rule["all"], bullet):

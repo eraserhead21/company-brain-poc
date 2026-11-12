@@ -1,0 +1,20 @@
+# Proposed GitHub Actions workflow. To turn it on, move this file to
+# .github/workflows/checks.yml. It sits here because the token that opened the
+# pull request has no "workflow" scope, so it cannot push into .github/workflows/.
+# It has not run on GitHub yet.
+name: checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # the auto-marker test replays past rounds from git history
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python scripts/run_checks.py

@@ -164,14 +164,21 @@
           "kafka",
           "event hubs"
         ],
-        "or": {
-          "rule": "learning",
-          "all": [
-            "kafka",
-            "event hubs",
-            "\\bstale\\b"
-          ]
-        }
+        "or": [
+          {
+            "rule": "learning",
+            "all": [
+              "kafka",
+              "event hubs",
+              "\\bstale\\b"
+            ]
+          },
+          {
+            "rule": "ledger_supersession",
+            "old": "kafka",
+            "new": "event hubs"
+          }
+        ]
       }
     },
     {
