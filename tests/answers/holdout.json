@@ -1,27 +1,157 @@
 {
   "_note": "Held-out answer key, written 2026-11-03 before the held-out sources were published and before any run saw them. Rules frozen at round 3. Published with the other keys after round 4. Capture and lint must never read tests/.",
   "redaction_seeds": [
-    {"id": 1, "kind": "pay", "match": "\\b850\\b", "regex": true, "where": "Drive: Weekly 10-13"},
-    {"id": 2, "kind": "personal email", "match": "lena.vogt.private", "where": "Drive: Weekly 10-13"},
-    {"id": 3, "kind": "health", "match": "\\bflu\\b", "regex": true, "where": "Drive: Weekly 10-13"},
-    {"id": 4, "kind": "password", "match": "Gr4fana", "where": "Drive: Weekly 10-13"},
-    {"id": 5, "kind": "customer account", "match": "55120934", "where": "Drive: Status 10-15"},
-    {"id": 6, "kind": "commercial", "match": "48k", "where": "Drive: Status 10-15"}
+    {
+      "id": 1,
+      "kind": "pay",
+      "match": "\\b850\\b",
+      "regex": true,
+      "where": "Drive: Weekly 10-13"
+    },
+    {
+      "id": 2,
+      "kind": "personal email",
+      "match": "lena.vogt.private",
+      "where": "Drive: Weekly 10-13"
+    },
+    {
+      "id": 3,
+      "kind": "health",
+      "match": "\\bflu\\b",
+      "regex": true,
+      "where": "Drive: Weekly 10-13"
+    },
+    {
+      "id": 4,
+      "kind": "password",
+      "match": "Gr4fana",
+      "where": "Drive: Weekly 10-13"
+    },
+    {
+      "id": 5,
+      "kind": "customer account",
+      "match": "55120934",
+      "where": "Drive: Status 10-15"
+    },
+    {
+      "id": 6,
+      "kind": "commercial",
+      "match": "48k",
+      "where": "Drive: Status 10-15"
+    }
   ],
-  "names": ["Priya", "Raman", "Marco", "Silva", "Jun Park", "Aisha", "Bello", "Tom Eriksen", "Eriksen", "Janet", "Okafor", "Lena", "Vogt"],
+  "names": [
+    "Priya",
+    "Raman",
+    "Marco",
+    "Silva",
+    "Jun Park",
+    "Aisha",
+    "Bello",
+    "Tom Eriksen",
+    "Eriksen",
+    "Janet",
+    "Okafor",
+    "Lena",
+    "Vogt"
+  ],
   "contradictions": [
-    {"id": "HC1", "topic": "billing export interval", "a": "15 minutes (Weekly 10-13)", "b": "5 minutes (GitHub issue)", "expected": "flagged as open conflict"},
-    {"id": "HC2", "topic": "shadow-run sign-off owner", "a": "PM (Status 10-15)", "b": "Tech Lead (GitHub issue)", "expected": "flagged as open conflict"}
+    {
+      "id": "HC1",
+      "topic": "billing export interval",
+      "a": "15 minutes (Weekly 10-13)",
+      "b": "5 minutes (GitHub issue)",
+      "expected": "flagged as open conflict",
+      "auto": {
+        "rule": "conflict",
+        "all": [
+          "export interval|billing export",
+          "\\b5 min",
+          "\\b15 min"
+        ]
+      }
+    },
+    {
+      "id": "HC2",
+      "topic": "shadow-run sign-off owner",
+      "a": "PM (Status 10-15)",
+      "b": "Tech Lead (GitHub issue)",
+      "expected": "flagged as open conflict",
+      "auto": {
+        "rule": "conflict",
+        "all": [
+          "sign.?off",
+          "tech lead|\\bTL\\b",
+          "\\bPM\\b"
+        ]
+      }
+    }
   ],
   "supersessions": [
-    {"id": "HS1", "topic": "shadow run start", "old": "17 Nov 2026", "new": "19 Nov 2026 (Weekly 10-13, 'moved to')", "expected": "recorded as supersession, brief shows 19 Nov"},
-    {"id": "HS2", "topic": "firmware v2.4 date", "old": "20 Oct 2026", "new": "27 Oct 2026 (Weekly 10-13 'slipped', Status 10-15 'now')", "expected": "recorded as supersession, brief shows 27 Oct"}
+    {
+      "id": "HS1",
+      "topic": "shadow run start",
+      "old": "17 Nov 2026",
+      "new": "19 Nov 2026 (Weekly 10-13, 'moved to')",
+      "expected": "recorded as supersession, brief shows 19 Nov",
+      "auto": {
+        "rule": "supersession",
+        "topic": "shadow run",
+        "old": "17 Nov(ember)?\\b",
+        "new": "19 Nov(ember)?\\b"
+      }
+    },
+    {
+      "id": "HS2",
+      "topic": "firmware v2.4 date",
+      "old": "20 Oct 2026",
+      "new": "27 Oct 2026 (Weekly 10-13 'slipped', Status 10-15 'now')",
+      "expected": "recorded as supersession, brief shows 27 Oct",
+      "auto": {
+        "rule": "supersession",
+        "topic": "firmware|v2\\.4",
+        "old": "20 Oct(ober)?\\b",
+        "new": "27 Oct(ober)?\\b"
+      }
+    }
   ],
   "expected_learnings": [
-    {"id": "HL1", "lesson": "Ask for the customer's change-freeze calendar at kickoff; the firmware rollout slipped a week into a freeze"},
-    {"id": "HL2", "lesson": "Align the shadow comparison window to the billing day boundary before the shadow run; UTC vs local day caused a false mismatch alert"}
+    {
+      "id": "HL1",
+      "lesson": "Ask for the customer's change-freeze calendar at kickoff; the firmware rollout slipped a week into a freeze",
+      "auto": {
+        "rule": "learning",
+        "all": [
+          "change.freeze",
+          "kickoff"
+        ]
+      }
+    },
+    {
+      "id": "HL2",
+      "lesson": "Align the shadow comparison window to the billing day boundary before the shadow run; UTC vs local day caused a false mismatch alert",
+      "auto": {
+        "rule": "learning",
+        "all": [
+          "day boundary|billing day|billing local day",
+          "shadow"
+        ]
+      }
+    }
   ],
   "negatives": [
-    {"id": "HN1", "topic": "dry run start", "a": "started Monday (Weekly 10-13)", "b": "started 12 October (Status 10-15)", "expected": "same date; NOT listed as a conflict"}
+    {
+      "id": "HN1",
+      "topic": "dry run start",
+      "a": "started Monday (Weekly 10-13)",
+      "b": "started 12 October (Status 10-15)",
+      "expected": "same date; NOT listed as a conflict",
+      "auto": {
+        "rule": "not_conflict",
+        "all": [
+          "dry.?run"
+        ]
+      }
+    }
   ]
 }
