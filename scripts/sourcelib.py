@@ -161,12 +161,17 @@ def own_ids(path):
 
 
 class Source:
-    def __init__(self, path, root):
-        self.path = Path(path)
-        self.rel = self.path.relative_to(root).as_posix()
-        self.text = strip_header(self.path.read_text(encoding="utf-8", errors="replace"))
+    def __init__(self, path=None, root=None, text=None):
+        """A source file, or (with text=) a piece of text treated like one."""
+        if text is None:
+            self.path = Path(path)
+            self.rel = self.path.relative_to(root).as_posix()
+            self.text = strip_header(self.path.read_text(encoding="utf-8", errors="replace"))
+            ids = own_ids(self.path)
+        else:
+            self.path, self.rel, self.text, ids = None, "", text, set()
         self.lines = self.text.splitlines()
-        self.atoms = extract(self.text) | own_ids(self.path)
+        self.atoms = extract(self.text) | ids
         self.low = normalise(self.text)
         self.stems = {stem(w) for w in WORD.findall(self.text)}
         self.prefixes = {w.lower()[:5] for w in WORD.findall(self.text) if len(w) >= 4}
@@ -316,18 +321,34 @@ def grounded(atom, source):
         return source.has_quantity(atom[1])
     if kind != "num":
         return atom in source.atoms
-    _, value, unit, ctx = atom
-    for other in source.atoms:
-        if other[0] != "num" or other[1] != value:
-            continue
-        _, _, o_unit, o_ctx = other
-        if unit:
-            # Same value and same unit, or a bare number in the source ("not 5").
-            if o_unit == unit or (o_unit is None and not o_ctx):
-                return True
-        elif not ctx or not o_ctx or ctx & o_ctx or (o_unit and o_unit in ctx):
-            return True
-    return False
+    return any(same_number(atom, other) for other in source.atoms)
+
+
+def same_number(atom, other):
+    """True when two number items say the same thing."""
+    if atom[0] != "num" or other[0] != "num" or atom[1] != other[1]:
+        return False
+    _, _, unit, ctx = atom
+    _, _, o_unit, o_ctx = other
+    if unit:
+        # Same value and same unit, or a bare number on the other side ("not 5").
+        return o_unit == unit or (o_unit is None and not o_ctx)
+    return bool(not ctx or not o_ctx or ctx & o_ctx or (o_unit and o_unit in ctx))
+
+
+def same(atom, other):
+    return same_number(atom, other) if atom[0] == "num" else atom == other
+
+
+def text_has(value, text):
+    """True when the text holds the value: every item in it, or, for a value
+    with no number or date, every word of it."""
+    atoms = extract(value)
+    if atoms:
+        return all(grounded(a, Source(text=text)) for a in atoms)
+    words = [w for w in re.findall(r"[A-Za-z0-9_]+", value.lower()) if w not in STOP]
+    have = {stem(w) for w in re.findall(r"[A-Za-z0-9_]+", text.lower())}
+    return bool(words) and all(stem(w) in have for w in words)
 
 
 def content_words(text):
