@@ -64,6 +64,11 @@ task names the Python to use if it is not `python`.
    cards. A status update that only restates a plan is not a learning.
    A lesson stated in meeting notes (something the team asked to do earlier
    next time) is a learning card, even if it is small.
+   - **Go through the sources one at a time.** For each source, write a card
+     for each lesson, decision and risk that no card covers yet. A risk in a
+     risk register or an open issue is a risk card. Then list every source
+     with the cards it led to. Look again at each source that led to no card,
+     and give the reason in the return block.
    - **Every number, date, version and identifier in a card must be in a source
      the card lists in `sources`.** List every source a fact comes from. Do not
      work out a number the source does not state (a duration from two dates, a
@@ -173,6 +178,7 @@ drive_filtered_out: <count returned by search but older than CURSOR; 0 in staged
 github_items_read: <issues count> issues, <prs count> PRs, <files count> repo files
 cards_written: <count> (<file names>)
 dropped_confidential: <count>
+no_card: <each source that led to no card, with the reason, or none>
 relations: <contradictions> contradictions, <supersessions> supersessions, <scope> scope
 gate_before: <FAIL lines on the first check run>
 gate_after: <FAIL lines on the last check run> (<what is left, or none>)
