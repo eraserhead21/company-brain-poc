@@ -16,7 +16,9 @@ For example, a team's meeting notes record that a test run of a new billing syst
 |:---:|:---:|:---:|
 | Fabricated confidential details removed | Names leaked | Judgement tests passed, marked by a person |
 
-For more information, see [Results](#results).
+Two later sets of unseen documents were harder. Round 5 passed 4 of 7 judgement tests, marked by a person. Round 6 passed 8 of 8, marked by a script, after a fix for a defect that the person found. Both rounds removed every confidential detail and leaked 0 names.
+
+For more information, see [Results](#results) and [Known gaps](#known-gaps).
 
 ## Overview
 
