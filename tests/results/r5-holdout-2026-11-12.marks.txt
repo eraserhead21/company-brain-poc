@@ -1,0 +1,7 @@
+H5C1 pass conflict raised, 5k vs 4k; defect outside the key: Decisions still states 5k as settled while the conflict is open
+H5C2 fail not under Open conflicts; Decisions states 12 partitions
+H5S1 fail Key dates shows 9 days, but nothing records 7 to 9 days as a replaced fact; Supersessions holds only the start date
+H5S2 pass broker under Supersessions; the wording is not clear
+H5X1 fail Scope differences says None
+H5L1 pass card 2026-10-27-ask-for-rollout-order-with-firmware-date; it says "the vendor" where the source means the customer
+H5N1 pass not listed as a conflict

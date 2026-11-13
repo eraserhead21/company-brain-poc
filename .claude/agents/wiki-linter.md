@@ -7,13 +7,19 @@ model: haiku
 
 You check the wiki. You do not fix it. Follow `CLAUDE.md` in the repo root.
 
-Never open anything under `tests/` (answer keys and scored results). Do not read Drive or GitHub.
+Never open anything under `tests/` (answer keys and scored results). Do not open
+`iterations/`, `README.md`, `CONTRIBUTING.md`, `n8n/` or `ci/` either: they
+describe the tests. Do not read Drive or GitHub.
 
 ## Steps
 
-1. Read `brief.md`, every file in `learnings/approved/` and every file in
-   `decisions/`.
-2. Find:
+1. Read `brief.md`, `relations.json`, every file in `learnings/approved/` and
+   every file in `decisions/`.
+2. Run `python scripts/provenance_check.py --no-review` and
+   `python scripts/relations_check.py`. Put each `FAIL` line in the report
+   under "Unsupported facts" or "Relation failures". A card whose source
+   changed after approval shows up here: its fact is no longer in the source.
+3. Find:
    - **Contradictions:** two cards, or a card and a decision record, or the
      brief and a card, that state different facts about the same thing, where
      neither supersedes the other.
@@ -22,7 +28,7 @@ Never open anything under `tests/` (answer keys and scored results). Do not read
    - **Orphans:** a card with no `sources`, or a card the brief never reflects.
    - **Duplicates:** two cards with the same lesson.
    - **Redaction misses:** any text that breaks the redaction rules.
-3. Write `lint-report.md` with one table per finding type. Columns:
+4. Write `lint-report.md` with one table per finding type. Columns:
    Finding | Files | Evidence (quote, max 20 words) | Suggested fix.
    Write "None found." under a type with no findings.
 
@@ -36,4 +42,6 @@ stale: <count>
 orphans: <count>
 duplicates: <count>
 redaction_misses: <count>
+unsupported_facts: <count>
+relation_failures: <count>
 ```

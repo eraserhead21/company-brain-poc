@@ -30,12 +30,22 @@ The held doc stays in Drive. Nothing about it reaches `main`.
 ## Tests
 
 ```bash
-python tests/score.py
+python scripts/run_checks.py
 ```
 
-A passing run prints `caught 20/20` for redaction and `0 name(s) leaked`. It then lists the judgement checks for a person to mark. Add `--save <run>` to keep the record in [`tests/results/`](tests/results/).
+One command runs every check and exits with an error if one fails:
 
-Run it after any change to the rules, the prompts or the cards.
+- **Unit tests** for the check scripts, with the red-team cases.
+- **Redaction:** [`scripts/redaction_check.py`](scripts/redaction_check.py), the pattern check.
+- **Provenance:** [`scripts/provenance_check.py`](scripts/provenance_check.py). Every number, date, version and identifier in a card or the brief must be in a source that the card or line cites.
+- **Relations:** [`scripts/relations_check.py`](scripts/relations_check.py). Every relation in [`relations.json`](relations.json) must hold against its sources.
+- **Answer keys:** `python tests/score.py --key <file> --auto` for each key. A passing run prints `caught 20/20` for redaction and `0 name(s) leaked` on the main key. It then marks the judgement tests by script and lists them for a person to mark as well. Add `--save <run>` to keep the record in [`tests/results/`](tests/results/).
+
+Run it after any change to the rules, the prompts, the cards or the sources.
+
+Capture runs the redaction, provenance and relation checks on its own output. It never runs the unit tests or the answer keys, because they are in `tests/`.
+
+A card cites a GitHub issue by its URL. Save the issue for the offline checks with `python scripts/snapshot_github.py --cited`.
 
 ## Sources
 

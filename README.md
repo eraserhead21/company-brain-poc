@@ -22,10 +22,13 @@ For more information, see [Results](#results).
 
 Project knowledge sits in meeting notes, chat, tickets, and design documents. Nobody reads all of it, and nobody wants the personal or commercial details in it spread around the company.
 
-This proof of concept (POC) reads one project's documents and writes two things:
+This proof of concept (POC) reads one project's documents and writes three things:
 
 - **A project brief:** One page with the current status, decisions, risks, conflicts between documents, and facts that later documents replaced. Each fact links to its source.
 - **Learning cards:** Short lessons another team can reuse. For example, ask the customer for access to their test system during project kickoff.
+- **A relation ledger:** One typed entry for each item that two documents state differently: a contradiction, a replaced fact, or a difference in scope. See [`relations.json`](relations.json).
+
+Three scripts then check the output against the documents, with no model. See [Checks](#checks).
 
 It runs in two modes:
 
@@ -59,7 +62,9 @@ The capture job opens a pull request (PR) on GitHub to propose new cards and a f
 | **Rules in files instead of prompts** | Files hold the card format, the 7 redaction rules (what to remove), the conflict rule, and the capture steps. | [`CLAUDE.md`](CLAUDE.md), [`card-extractor.md`](.claude/agents/card-extractor.md) |
 | **Small model, narrow job** | Claude Haiku, a small and cheap model, pulls out the facts. It reads only what changed since the last run. A small update costs about 20% less than a full rebuild (93,000 against 115,000 tokens). | [`log.md`](log.md) records where the last run stopped |
 | **Two layers of redaction** | Claude follows the redaction rules, then a pattern check catches what it missed. | [`redaction_check.py`](scripts/redaction_check.py) |
-| **Show conflicts, do not resolve them** | When two documents disagree and neither replaces the other, the brief lists both under "Open conflicts". When a later document clearly states a change, the brief records the new fact and marks the old one as replaced. | [`brief.md`](brief.md) |
+| **Show conflicts, do not resolve them** | When two documents disagree and neither replaces the other, the brief lists both under "Open conflicts". A later document replaces an earlier fact only with evidence: it gives the old value, it uses a change word such as "moved to", or it names the document it replaces. "Agreed" alone is not evidence. | [`brief.md`](brief.md), [`relations.json`](relations.json) |
+| **Check every fact against its source** | A script traces each number, date, version, and identifier in a card or the brief to a document that the card or line cites. A fact that no cited document holds fails. | [`provenance_check.py`](scripts/provenance_check.py) |
+| **Check before a person reviews** | The capture job runs the checks on its own output and fixes what fails, before it opens the pull request. | [`card-extractor.md`](.claude/agents/card-extractor.md), step 9 |
 | **Approval is a merge** | The `main` branch, the approved version, never holds an unapproved card. | [`learnings/approved/`](learnings/approved/) |
 
 ## Operated with n8n
@@ -118,7 +123,7 @@ The brain learns from use: questions, ratings, and a regression eval set flow ba
 A question that held personal data, such as "When was the engineer on sick leave?", becomes a guardrail case: it must stay refused.
 
 > [!NOTE]
-> This is the outer feedback loop: signals from use become eval cases, and a person approves each change. It is not in-run feedback (the evaluator-optimizer pattern, where one model call critiques another within a single run). The POC does not use that pattern.
+> This is the outer feedback loop: signals from use become eval cases, and a person approves each change. It is not in-run feedback (the evaluator-optimizer pattern, where one model call critiques another within a single run). The Claude Code capture job has an in-run step of a different kind: scripts, not a second model call, check its output, and it fixes what fails. See [Checks](#checks). The n8n workflows do not have that step.
 
 **Tested on 2026-11-10 with fictional test questions:**
 
@@ -171,14 +176,38 @@ I planted the failures a company fears most in a fictional project, then scored 
 - **Judgement:** 3 conflicts between documents, 1 fact that a later document replaced, and 8 lessons a careful reader would find.
 - **Answer key:** [`tests/answers/`](tests/answers/). The rules tell the capture job never to read `tests/`.
 - **Unseen test set:** 2 more Drive documents and 1 issue with new kinds of hidden details, an answer key that I wrote before any run saw them, and one trap (the same date written two ways).
+- **Second unseen test set (round 5):** 3 more documents, with the key written first. The hidden details avoid the pattern check on purpose: pay written in words, a health note with no keyword, a name written as an initial and a surname. The 7 judgement tests include a decision with no mention of the old value, a decision that gives the old value, a record that names the document it replaces, an old document that turns up late, and one date written two ways.
 
-[`tests/score.py`](tests/score.py) checks redaction and names automatically, and lists the judgement tests for a person to mark. [`tests/results/`](tests/results/) holds each round's marks and scores.
+[`tests/score.py`](tests/score.py) checks redaction and names automatically, and lists the judgement tests for a person to mark. With `--auto`, a script marks them as well. [`tests/results/`](tests/results/) holds each round's marks and scores.
+
+</details>
+
+## Checks
+
+Three scripts test the output against the documents. They use no model and no network, and capture runs them before it opens a pull request.
+
+| Check | What fails | Script |
+|---|---|---|
+| **Redaction** | A pattern for a confidential detail: a phone number, a password, a pay amount. | [`redaction_check.py`](scripts/redaction_check.py) |
+| **Provenance** | A number, date, version, or identifier that is in no document the card or line cites. A citation that does not resolve, or that points outside the source folders. | [`provenance_check.py`](scripts/provenance_check.py) |
+| **Relations** | A "replaced" fact with no evidence in the later document. A later document dated before the earlier one. A conflict in the ledger that the brief does not list. | [`relations_check.py`](scripts/relations_check.py) |
+
+<details>
+<summary>Show how the checks were tested</summary>
+
+- **Known-bad cases from round 1.** Round 1 made up 4 facts. Their text, from git history, is now a test. The provenance check fails 3 of the 4. The 4th is a made-up reason with no number: the check lists it for a person and does not fail it.
+- **Planted errors.** A test changes one number, date, or version in each card line and swaps each card's sources. The check catches 80 of 87. In the 7 it misses, the wrong value is also in a cited document.
+- **The missed conflict, first.** Before any rule changed, a test showed that the round 4 output fails: "retention 90 days moved to 30 days" has no evidence of a change.
+- **Red-team cases.** Each check has cases written to break it. The cases that held are tests. The cases that broke a check are also tests, named as known gaps.
+- **Script marks against a person's marks.** The script agrees with all 55 marks that a person saved in rounds 1 to 4. The first set of rules agreed with 54. On the second unseen set the script agrees with 6 of the 7 marks: it passed one test that the person failed.
+
+One command runs everything: `python scripts/run_checks.py`. For the full record, see [round 5](iterations/05-provenance-and-relations.md).
 
 </details>
 
 ## Results
 
-Redaction held in all 4 rounds with 0 names leaked. Judgement tests rose from 8/12 to 11/12, then passed 7/7 on unseen documents.
+Redaction held in all 5 rounds with 0 names leaked. Judgement tests rose from 8/12 to 12/12 on the main set. On unseen documents they passed 7/7 in round 4 and 4/7 in round 5.
 
 <details>
 <summary>Show the scores for each round</summary>
@@ -189,27 +218,56 @@ Redaction held in all 4 rounds with 0 names leaked. Judgement tests rose from 8/
 | 2 | New rules for conflicts and lessons | 20/20 | 0 | 11/12 |
 | 3 | Clearer wording for conflicts, after reviewer feedback | 20/20 | 0 | 11/12, less clutter |
 | 4 | **Unseen documents (a held-out set), rules locked** | **6/6** | **0** | **7/7** |
+| 5 | Typed relations, provenance check, checks inside capture | 20/20 | 0 | 12/12, marked by a script |
+| 5 | **Second set of unseen documents, rules locked** | **8/8** | **0** | **4/7** (a script marked 5/7) |
 
-Each round has a page in [`iterations/`](iterations/) with its failures, the exact rule change, the score after, and the cost. Round 3 is the clearest example: a reviewer said the list of conflicts was unclear, and the page shows the list before and after the rule change.
+A person marked rounds 1 to 4 and the second unseen set. A script marked the round 5 rebuild.
+
+New checks in round 5, on the same output before and after:
+
+| Check | Round 4 output | Round 5 output |
+|---|---|---|
+| Facts that no cited document holds | 3 in 109 checked | 0 in 102 checked |
+| Relations that fail against the documents | No ledger | 0 in 10 |
+| The missed conflict (C1) | Recorded as a replaced fact | Listed as an open conflict |
+
+Each round has a page in [`iterations/`](iterations/) with its failures, the exact rule change, the score after, and the cost. Round 3 is the clearest example: a reviewer said the list of conflicts was unclear, and the page shows the list before and after the rule change. Round 5 shows the two tests that the second unseen set failed.
 
 </details>
 
 ## Known gaps
 
-The biggest gap: the brief still misses one conflict in the main test set.
+The biggest gap: the newest unseen test passed 4 of 7 judgement tests, and the checks did not see the three misses.
 
 <details>
-<summary>Show all 10 gaps</summary>
+<summary>Show what round 5 closed</summary>
 
-- **One missed conflict (C1).** A meeting note says "Agreed: retention is 30 days"; the design document says 90. The rule reads "agreed" as a change, so the brief records 30 days as the new fact. C1 is not in the unseen set, so round 4 shows 7/7.
-- **No test for made-up facts.** Round 1 made up 4 facts. A human review missed one, and a Claude Project then repeated it with confidence. A spot check of the current output found no unsourced numbers or reasons, but no script tests for this.
+- **The missed conflict (C1) is fixed.** A meeting note says "Agreed: retention is 30 days"; the design document says 90. The brief now lists both under Open conflicts. "Agreed" alone no longer replaces a fact.
+- **Made-up facts now have a test, in part.** The provenance check fails 3 of the 4 facts that round 1 made up. See the first gap below for what it misses.
+- **A script now marks the judgement tests, in part.** It agrees with all 55 marks that a person saved in rounds 1 to 4, and with 6 of 7 on the second unseen set. See the gaps below for its limits.
+- **Replaced facts keep their history.** [`relations.json`](relations.json) holds every relation and has no word limit. The brief still trims other facts to fit 600 words.
+
+</details>
+
+<details>
+<summary>Show all 17 open gaps</summary>
+
+- **The provenance check reads words, not meaning.** It misses a claim that reverses its source ("No duplicates" to "Duplicates were seen"), a wrong number that the source also holds, and a made-up reason with no number in it. It lists unknown words for a person. Only a model or a person can judge meaning.
+- **Three misses on the second unseen set.** An old review note says the partition count "moved to 24"; a later decision record says 12. Capture kept 12, which is correct, but did not list the conflict. It did not record that an alert limit for a test run and the limit for go-live are two scopes. It wrote "9 days" for a test run that was 7 days, and did not record that 9 replaced 7. For the cause that capture reported, see [round 5](iterations/05-provenance-and-relations.md#what-failed).
+- **The brief can state a contested value as a decision.** In round 5 the brief lists a limit under Open conflicts (5k against 4k) and still gives 5k under Decisions. No test and no check covers this. A person found it while marking.
+- **The checks cannot find what capture left out.** They test each relation that capture wrote. All three reported 0 failures on the run that missed three relations.
+- **No run has written a scope difference.** Only unit tests cover that type.
+- **The script is more lenient than a person.** On the second unseen set the script passed 5 of 7 and a person passed 4. The script took a card and a date line as the record of a replaced fact. A script marked the round 5 rebuild (12/12), and no person has. The script uses keyword rules, written with the earlier human marks in view.
+- **Same person, same test.** I tuned rounds 2, 3, and 5 on the test I scored them on. I also wrote both unseen sets, their keys, and the rules.
+- **Nothing enforces the wall around the tests.** The rules tell capture not to open the answer keys, the iteration pages, this README, or old log lines. Capture reports the files it opened. No permission blocks it.
 - **Redaction covers the knowledge base, not the original documents.** A Project that read the Drive documents directly gave out a team member's leave dates. The original documents need their own access controls.
-- **The brief loses history.** In round 4, the 600-word limit pushed older, replaced dates out of the brief. The cards still hold them.
-- **Same test for tuning and scoring.** I tuned rounds 2 and 3 on the test I scored them on. Round 4 is the only unseen test, and I wrote both its documents and the rules.
-- **A person, not a script, marks the judgement tests.**
-- **Cost doubled as the rules grew.** A full rebuild went from about 59,000 Haiku tokens in round 1 to 115,000 in round 2. A small update takes 93,000.
-- **The cost test has not run.** [`tests/eval_questions.md`](tests/eval_questions.md) compares answering from the brief with answering from the original documents.
-- **The feedback loop is new.** It went live on 2026-11-10 and has run only on fictional test questions. W4b has no baseline until a person merges the first feedback PR.
+- **The pattern check misses paraphrases.** It does not catch pay written in words, a health note with no keyword, a token with no colon, a supplier switch in other words, or an account number with no prefix. Claude caught all 8 such details in round 5. The pattern check is then no second layer.
+- **A full rebuild renames cards.** 3 of the 13 card IDs survived the round 5 rebuild. An eval case that names a card ID can break.
+- **The n8n workflows do not run the new checks.** W1 writes one card and no ledger, and it cites a document by its Drive title. The provenance check can read that citation only when the document has an export in `sources/`. A second W1 run on the same document opened a second pull request for the same card (#16 and #27).
+- **The checks do not run on GitHub yet.** [`ci/checks.yml`](ci/checks.yml) is a proposed workflow. It has not run.
+- **No card owner or review date.** Cards never expire. The provenance check flags a card when its source changes and the fact is gone, but only when someone runs it.
+- **Cost.** A full rebuild took about 59,000 Haiku tokens in round 1 and 123,500 in round 5. A small update took 95,500. The cost test in [`tests/eval_questions.md`](tests/eval_questions.md), which compares answering from the brief with answering from the original documents, has not run.
+- **The feedback loop is new.** It went live on 2026-11-10 and has run only on fictional test questions. W4b has no baseline until a person merges the first feedback PR. Repeated W4 runs and one-sided ratings are not tested.
 - **One-person simulation.** No real user roles, single sign-on, permission-aware search, Microsoft 365, or ticketing system. The stand-ins show the shape of the solution, not how it behaves at scale.
 
 </details>
@@ -223,12 +281,14 @@ The biggest gap: the brief still misses one conflict in the main test set.
 |---|---|
 | [`CLAUDE.md`](CLAUDE.md) | The rules: card format, what to remove, and how to handle conflicts |
 | [`brief.md`](brief.md) | The current project brief |
+| [`relations.json`](relations.json) | The relation ledger: every contradiction, replaced fact, and scope difference, with its sources |
 | [`learnings/approved/`](learnings/approved/) | Approved learning cards |
-| [`sources/`](sources/) | Copies of the Drive documents (fictional, with planted details) |
+| [`sources/`](sources/) | Copies of the Drive documents (fictional, with planted details), and snapshots of the GitHub issues that cards cite in [`sources/github/`](sources/github/) |
 | [`src/`](src/), [`docs/`](docs/), [`decisions/`](decisions/) | The stand-in team repo: code, architecture notes, and architecture decision records (ADRs) |
 | [`iterations/`](iterations/) | One page per improvement round |
 | [`tests/`](tests/) | Answer keys, the scoring script, and saved results |
-| [`scripts/redaction_check.py`](scripts/redaction_check.py) | The pattern check that backs up the redaction step |
+| [`scripts/`](scripts/) | The three checks (redaction, provenance, relations), one command that runs every check, and the scripts that stage sources and save GitHub issues |
+| [`ci/checks.yml`](ci/checks.yml) | A proposed GitHub Actions workflow that runs the checks on every pull request. Not active yet |
 | [`.claude/`](.claude/) | The Claude Code commands for capture and checking, and the small-model helpers they use |
 | [`project-instructions/`](project-instructions/) | Instructions for the two claude.ai Projects |
 | [`log.md`](log.md) | A log of every run: counts, cost, and where the last run stopped |
@@ -241,7 +301,7 @@ The biggest gap: the brief still misses one conflict in the main test set.
 
 ## Run it
 
-You need Claude Code, the GitHub CLI, Python 3, and the Google Drive connector, plus your own Drive folder. Set its ID in [`poc-config.json`](poc-config.json).
+You need Claude Code, the GitHub CLI, Python 3, and the Google Drive connector, plus your own Drive folder. Set its ID in [`poc-config.json`](poc-config.json). With no Drive folder, capture can read the copies in [`sources/`](sources/) instead: see staged mode in the [capture steps](.claude/skills/capture/SKILL.md). The checks need only Python.
 
 > [!WARNING]
 > Capture sends document text to the Anthropic API before redaction. Use test data only.
@@ -251,8 +311,8 @@ You need Claude Code, the GitHub CLI, Python 3, and the Google Drive connector, 
 
 1. Run `/capture` in Claude Code in this folder. It opens a pull request with new cards and a fresh brief.
 2. Review the pull request. Merge it to approve, or close it to reject.
-3. Run `python tests/score.py`, then mark the judgement tests it prints. Add `--save <run>` to keep the record.
-4. Run `/lint-wiki`. It writes [`lint-report.md`](lint-report.md): conflicts, out-of-date claims, unlinked cards, and duplicates.
+3. Run `python scripts/run_checks.py`. It runs the unit tests, the three checks, and each answer key with script marks. To mark the judgement tests yourself, run `python tests/score.py` and add `--save <run>` to keep the record.
+4. Run `/lint-wiki`. It writes [`lint-report.md`](lint-report.md): conflicts, out-of-date claims, unlinked cards, duplicates, and facts that no source holds.
 5. Optional: create the claude.ai Projects "Alpha" and "Ask the Org" from [`project-instructions/`](project-instructions/) to ask questions over the brief and the cards.
 
 </details>

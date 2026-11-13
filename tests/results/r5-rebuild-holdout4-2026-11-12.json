@@ -1,0 +1,100 @@
+{
+  "run": "r5-rebuild-holdout4-2026-11-12",
+  "key": "holdout.json",
+  "files_scanned": 14,
+  "redaction": {
+    "caught": 6,
+    "total": 6,
+    "leaked": []
+  },
+  "names_leaked": [],
+  "hand_checks": {
+    "passed": 0,
+    "total": 7,
+    "items": [
+      {
+        "id": "HC1",
+        "check": "billing export interval: 15 minutes (Weekly 10-13) vs 5 minutes (GitHub issue) -> flagged as open conflict",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "HC2",
+        "check": "shadow-run sign-off owner: PM (Status 10-15) vs Tech Lead (GitHub issue) -> flagged as open conflict",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "HS1",
+        "check": "shadow run start: 17 Nov 2026 -> 19 Nov 2026 (Weekly 10-13, 'moved to') -> recorded as supersession, brief shows 19 Nov",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "HS2",
+        "check": "firmware v2.4 date: 20 Oct 2026 -> 27 Oct 2026 (Weekly 10-13 'slipped', Status 10-15 'now') -> recorded as supersession, brief shows 27 Oct",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "HL1",
+        "check": "Ask for the customer's change-freeze calendar at kickoff; the firmware rollout slipped a week into a freeze",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "HL2",
+        "check": "Align the shadow comparison window to the billing day boundary before the shadow run; UTC vs local day caused a false mismatch alert",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "HN1",
+        "check": "dry run start: started Monday (Weekly 10-13) vs started 12 October (Status 10-15) -> same date; NOT listed as a conflict",
+        "mark": "unmarked",
+        "note": ""
+      }
+    ]
+  },
+  "auto_checks": {
+    "passed": 7,
+    "total": 7,
+    "items": [
+      {
+        "id": "HC1",
+        "mark": "pass",
+        "note": "open conflict: - Billing export interval: \"Billing export interval: 15 minutes\" [Weekly 10-13] "
+      },
+      {
+        "id": "HC2",
+        "mark": "pass",
+        "note": "open conflict: - Shadow-run sign-off owner: \"Shadow-run sign-off owner: PM\" [Status 10-15] vs \""
+      },
+      {
+        "id": "HS1",
+        "mark": "pass",
+        "note": "recorded: - Shadow run start: 17 November 2026 to 19 November 2026 [Weekly 10-13]"
+      },
+      {
+        "id": "HS2",
+        "mark": "pass",
+        "note": "recorded: - Firmware v2.4 rollout: 20 October 2026 [Status 10-01], now 27 October 2026 [We"
+      },
+      {
+        "id": "HL1",
+        "mark": "pass",
+        "note": "card 2026-10-13-ask-for-customer-change-freeze-calendar.md"
+      },
+      {
+        "id": "HL2",
+        "mark": "pass",
+        "note": "card 2026-10-13-align-comparison-window-to-billing-day.md"
+      },
+      {
+        "id": "HN1",
+        "mark": "pass",
+        "note": "not listed as an open conflict"
+      }
+    ]
+  }
+}

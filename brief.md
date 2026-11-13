@@ -1,72 +1,71 @@
 # Project Alpha brief
 
-Compiled: 2026-11-03T16:06:32Z, cursor 2026-11-03T16:06:32Z, by capture
+Compiled: 2026-11-12T14:46:06Z, cursor 2026-11-12T14:46:06Z, by capture
 
 ## Status
 
-- Amber, as of 15 Oct. Go-live 28 Nov. [Status 10-15]
-- Backfill re-planned to about 15 days. Test re-run at 5k msg/s is pending. [Status 10-01]
-- Firmware v2.3 meters are held out of the shadow run until they upgrade. [Status 10-01]
+- Overall: AMBER [Status 10-15]
+- Firmware v2.4 rollout finished on the first 3 meter groups [Weekly 10-27]
 
 ## Key dates
 
-- Design sign-off 19 Sep. [Status 09-22]
-- Firmware v2.4 rollout 27 Oct. [Weekly 10-13; Status 10-15]
-- DST change 25 Oct: local times 02:00 to 03:00 occur twice. [ADR-001]
-- Shadow run starts 19 Nov. [Weekly 10-13; Status 10-15]
-- Go-live 28 Nov. [Status 10-15]
+- Shadow run starts 19 November 2026 [Weekly 10-27]
+- Shadow run is 9 days [Weekly 10-27]
+- Go-live 28 November 2026 [Status 09-30]
 
 ## Decisions
 
-- Store readings in UTC. Convert to local time only in the billing export. [ADR-001]
-- Broker: Azure Event Hubs Standard, 12 partitions keyed by meter_id. [ADR-002]
-- Deduplicate resent readings with key meter_id plus UTC reading_ts, upsert on conflict. [Issue 1]
-- Throttle the backfill publisher to 5k msg/s. [PR 7; Issue 3]
-- Retain raw readings 30 days. [Weekly 09-29]
-- Shadow gate is measured on upgraded meter groups only. [Status 10-01]
+- Store all readings in UTC. Convert to local time only at the billing export [ADR-001]
+- Message broker: Azure Event Hubs, Standard tier, 12 partitions keyed by meter_id [ADR-002]
+- Message broker section of Solution Design v1 is replaced by Azure Event Hubs [ADR-003]
+- Delivery is at-least-once, with an idempotent consumer [Design review 09-12]
+- Duplicate readings: idempotency key meter_id plus UTC reading_ts, upsert on conflict [Issue 1]
+- Backfill publisher throttled to 5k msg/s [PR 7]
+- Shadow-run comparison window is the billing local day, 00:00 to 00:00 [Weekly 10-13]
+- Mismatch gate is measured on upgraded meter groups only; v2.3 groups are held out [Status 10-01]
 
 ## Open risks
 
-- Firmware v2.3 sends malformed timestamps, for example 2026-13-01. Readings are rejected and logged. Owner TL. [Issue 5; Risks R1]
-- Error logs hold raw request bodies with customer data. Masking is open. Owner Engineer. [Issue 6; Risks R3]
-- Shadow mismatch above 0.1% would block go-live. Daily dashboard review from day 1. Owner PM. Dashboard is open. [Risks R4; Issue 4]
-- Backfill takes about 15 days at the throttle. Owner TL. [Risks R2]
+- Firmware v2.3 sends malformed timestamps; readings are rejected and logged until the customer ships the firmware fix [Risk register]
+- Error logs hold raw customer data; masking is open [Risk register]
+- A shadow-run mismatch above 0.1% per day blocks go-live [Risk register]
 
 ## Open conflicts
 
-- Broker. Kafka on AKS, 3 brokers, 12 partitions. [Design v1] Versus Azure Event Hubs Standard, 12 partitions. [ADR-002] Neither source says it replaces the other. Acting on the wrong one changes the design.
-- On-call rota owner from October. Engineer A. [Channel Sep 09-29] Versus Engineer B. [Status 09-30] Acting on the wrong one changes the owner.
-- Billing export interval. 5 minutes. [Issue 12] Versus 15 minutes. [Weekly 10-13] Neither replaces the other. Acting on the wrong one changes the design.
-- Shadow-run sign-off owner. Tech Lead. [Issue 12] Versus PM. [Status 10-15] Acting on the wrong one changes the owner.
+- Backfill publisher cap: "Backfill publisher throttled to 5k msg/s" [PR 7] vs "Confirmed: the backfill publisher cap is 4k msg/s" [Weekly 10-27]
+- Raw readings retention: "Raw readings retained for 90 days for audit and replay" [Design v1] vs "raw readings retention is 30 days, not longer" [Weekly 09-29]
+- Shadow-run sign-off owner: "Shadow-run sign-off owner: PM" [Status 10-15] vs "The Tech Lead signs off the shadow run before go-live" [Issue 12]
+- Billing export interval: "Billing export interval: 15 minutes" [Weekly 10-13] vs "Billing export batch interval is 5 minutes" [Issue 12]
+- On-call rota owner from October: "Engineer B owns the on-call rota from October" [Team Channel] vs "On-call rota owner from October: Engineer A" [Status 09-30]
+
+## Scope differences
+
+None.
 
 ## Supersessions
 
-- Shadow run 3 Nov, then 17 Nov, moved to 19 Nov. [Charter; Status 09-30] to [Weekly 10-13; Status 10-15]
-- Firmware v2.4 fix 20 Oct moved to 27 Oct. [Status 10-01] to [Weekly 10-13; Status 10-15]
-- Backfill complete 17 Oct. No longer holds; no new date. [Charter] [Weekly 09-29]
-- Raw readings retention 90 days moved to 30 days. [Design v1] to [Weekly 09-29]
-- Readings stored in meter local time moved to UTC. [Design v1] to [Status 09-30; ADR-001]
-- Shadow gate covers all meter groups moved to upgraded groups only. [Charter] to [Status 10-01]
+- Message broker: self-run Kafka cluster on AKS [Design v1], now Azure Event Hubs [ADR-003]
+- Go-live: 14 November 2026 to 28 November 2026 [Status 09-30]
+- Shadow run start: 17 November 2026 to 19 November 2026 [Weekly 10-13]
+- Firmware v2.4 rollout: 20 October 2026 [Status 10-01], now 27 October 2026 [Weekly 10-13]
+- Backfill: estimated 5 days, now about 15 days [Weekly 09-29]
 
 ## Sources
 
-- Charter: Alpha - Project Charter. sources/alpha-project-charter.md
-- Design v1: Alpha - Solution Design v1. sources/alpha-solution-design-v1.md
-- Kickoff: Alpha - Meeting Notes 2026-09-15 Kickoff. sources/alpha-meeting-notes-2026-09-15-kickoff.md
-- Weekly 09-29: Alpha - Meeting Notes 2026-09-29 Weekly. sources/alpha-meeting-notes-2026-09-29-weekly.md
-- Weekly 10-13: Alpha - Meeting Notes 2026-10-13 Weekly. sources/alpha-meeting-notes-2026-10-13-weekly.md
-- Status 09-22: Alpha - Status Update 2026-09-22. sources/alpha-status-update-2026-09-22.md
-- Status 09-30: Alpha - Status Update 2026-09-30. sources/alpha-status-update-2026-09-30.md
-- Status 10-01: Alpha - Status Update 2026-10-01. sources/alpha-status-update-2026-10-01.md
-- Status 10-15: Alpha - Status Update 2026-10-15. sources/alpha-status-update-2026-10-15.md
-- Risks: Alpha - Risk Register. sources/alpha-risk-register.md
-- Channel Sep: Alpha - Team Channel Log (September). sources/alpha-team-channel-log-september.md
-- ADR-001: decisions/ADR-001-store-readings-in-utc.md
-- ADR-002: decisions/ADR-002-message-broker.md
-- Issue 1: https://github.com/eraserhead21/claude-org-poc/issues/1
-- Issue 3: https://github.com/eraserhead21/claude-org-poc/issues/3
-- Issue 4: https://github.com/eraserhead21/claude-org-poc/issues/4
-- Issue 5: https://github.com/eraserhead21/claude-org-poc/issues/5
-- Issue 6: https://github.com/eraserhead21/claude-org-poc/issues/6
-- Issue 12: https://github.com/eraserhead21/claude-org-poc/issues/12
-- PR 7: https://github.com/eraserhead21/claude-org-poc/pull/7
+- ADR-001: Store all readings in UTC. decisions/ADR-001-store-readings-in-utc.md
+- ADR-002: Message broker. decisions/ADR-002-message-broker.md
+- ADR-003: Broker section of Solution Design v1. decisions/ADR-003-design-doc-broker-section.md
+- Design v1: PROJECT ALPHA - SOLUTION DESIGN v1. sources/alpha-solution-design-v1.md
+- Design review 09-12: PROJECT ALPHA - DESIGN REVIEW NOTES, 12 September 2026. sources/alpha-design-review-notes-2026-09-12.md
+- Charter: PROJECT ALPHA - CHARTER. sources/alpha-project-charter.md
+- Risk register: PROJECT ALPHA - RISK REGISTER. sources/alpha-risk-register.md
+- Status 09-30: PROJECT ALPHA - STATUS UPDATE, 30 September 2026. sources/alpha-status-update-2026-09-30.md
+- Status 10-01: PROJECT ALPHA - STATUS UPDATE, 1 October 2026. sources/alpha-status-update-2026-10-01.md
+- Status 10-15: PROJECT ALPHA - STATUS UPDATE, 15 October 2026. sources/alpha-status-update-2026-10-15.md
+- Weekly 09-29: MEETING NOTES - PROJECT ALPHA WEEKLY, 29 September 2026. sources/alpha-meeting-notes-2026-09-29-weekly.md
+- Weekly 10-13: MEETING NOTES - PROJECT ALPHA WEEKLY, 13 October 2026. sources/alpha-meeting-notes-2026-10-13-weekly.md
+- Weekly 10-27: MEETING NOTES - PROJECT ALPHA WEEKLY, 27 October 2026. sources/alpha-meeting-notes-2026-10-27-weekly.md
+- Team Channel: TEAM CHANNEL LOG - #alpha. sources/alpha-team-channel-log-september.md
+- Issue 1: ISSUE 1: Duplicate meter readings after network reconnect. https://github.com/eraserhead21/company-brain-poc/issues/1
+- Issue 12: ISSUE 12: Billing export interval and shadow-run sign-off. https://github.com/eraserhead21/company-brain-poc/issues/12
+- PR 7: PULL REQUEST 7: Throttle backfill publisher to 5k msg/s. https://github.com/eraserhead21/company-brain-poc/pull/7

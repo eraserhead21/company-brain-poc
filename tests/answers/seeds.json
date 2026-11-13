@@ -142,21 +142,58 @@
       "topic": "raw retention",
       "a": "90 days (Solution Design v1)",
       "b": "30 days (Meeting Notes 09-29)",
-      "expected": "flagged as open conflict"
+      "expected": "flagged as open conflict",
+      "auto": {
+        "rule": "conflict",
+        "all": [
+          "retention",
+          "\\b90\\b",
+          "\\b30\\b"
+        ]
+      }
     },
     {
       "id": "C2",
       "topic": "message broker",
       "a": "Kafka on AKS (Solution Design v1)",
       "b": "Azure Event Hubs (ADR-002)",
-      "expected": "flagged as open conflict, or ADR-002 treated as the later decision with the design doc marked stale"
+      "expected": "flagged as open conflict, or ADR-002 treated as the later decision with the design doc marked stale",
+      "auto": {
+        "rule": "conflict",
+        "all": [
+          "kafka",
+          "event hubs"
+        ],
+        "or": [
+          {
+            "rule": "learning",
+            "all": [
+              "kafka",
+              "event hubs",
+              "\\bstale\\b"
+            ]
+          },
+          {
+            "rule": "ledger_supersession",
+            "old": "kafka",
+            "new": "event hubs"
+          }
+        ]
+      }
     },
     {
       "id": "C3",
       "topic": "on-call rota owner",
       "a": "Aisha (Channel Log 29 Sep)",
       "b": "Jun (Status 09-30)",
-      "expected": "flagged as open conflict"
+      "expected": "flagged as open conflict",
+      "auto": {
+        "rule": "conflict",
+        "all": [
+          "on.?call",
+          "engineer"
+        ]
+      }
     }
   ],
   "supersessions": [
@@ -165,41 +202,109 @@
       "topic": "go-live date",
       "old": "14 Nov 2026 (Charter)",
       "new": "28 Nov 2026 (Status 09-30, 'moved to')",
-      "expected": "recorded as supersession, brief shows 28 Nov"
+      "expected": "recorded as supersession, brief shows 28 Nov",
+      "auto": {
+        "rule": "supersession",
+        "topic": "go.?live",
+        "old": "14 Nov(ember)?\\b",
+        "new": "28 Nov(ember)?\\b"
+      }
     }
   ],
   "expected_learnings": [
     {
       "id": "L1",
-      "lesson": "Meters resend readings after network drops; use idempotency key meter_id + UTC reading_ts with upsert"
+      "lesson": "Meters resend readings after network drops; use idempotency key meter_id + UTC reading_ts with upsert",
+      "auto": {
+        "rule": "learning",
+        "all": [
+          "resen[dt]|duplicate",
+          "idempotency",
+          "upsert"
+        ]
+      }
     },
     {
       "id": "L2",
-      "lesson": "DST makes local timestamps repeat; store UTC, convert only at export (ADR-001)"
+      "lesson": "DST makes local timestamps repeat; store UTC, convert only at export (ADR-001)",
+      "auto": {
+        "rule": "learning",
+        "all": [
+          "\\bUTC\\b",
+          "\\bDST\\b|daylight",
+          "export"
+        ]
+      }
     },
     {
       "id": "L3",
-      "lesson": "Backfill ran at 3x estimate; broker throttles near 5k msg/s; plan backfill from a measured test, not an estimate"
+      "lesson": "Backfill ran at 3x estimate; broker throttles near 5k msg/s; plan backfill from a measured test, not an estimate",
+      "auto": {
+        "rule": "learning",
+        "all": [
+          "backfill",
+          "\\b3x\\b|\\b(3|three) times",
+          "measured|measurement"
+        ]
+      }
     },
     {
       "id": "L4",
-      "lesson": "Customer sandbox access can take weeks; request it at kickoff, not after design sign-off"
+      "lesson": "Customer sandbox access can take weeks; request it at kickoff, not after design sign-off",
+      "auto": {
+        "rule": "learning",
+        "all": [
+          "sandbox",
+          "kickoff"
+        ]
+      }
     },
     {
       "id": "L5",
-      "lesson": "Event Hubs chosen over self-run Kafka because no Kafka ops skills and customer on Azure (ADR-002)"
+      "lesson": "Event Hubs chosen over self-run Kafka because no Kafka ops skills and customer on Azure (ADR-002)",
+      "auto": {
+        "rule": "learning",
+        "all": [
+          "event hubs",
+          "kafka",
+          "azure"
+        ]
+      }
     },
     {
       "id": "L6",
-      "lesson": "Firmware v2.3 malformed timestamps: reject and log; external dependency delayed go-live (risk)"
+      "lesson": "Firmware v2.3 malformed timestamps: reject and log; external dependency delayed go-live (risk)",
+      "auto": {
+        "rule": "learning",
+        "all": [
+          "v2\\.3",
+          "malformed",
+          "reject"
+        ]
+      }
     },
     {
       "id": "L7",
-      "lesson": "Error logs captured raw request bodies with customer data; mask before logging (risk)"
+      "lesson": "Error logs captured raw request bodies with customer data; mask before logging (risk)",
+      "auto": {
+        "rule": "learning",
+        "all": [
+          "error logs?",
+          "mask"
+        ]
+      }
     },
     {
       "id": "L8",
-      "lesson": "Go-live gate: 7-day shadow run with under 0.1% daily mismatch"
+      "lesson": "Go-live gate: 7-day shadow run with under 0.1% daily mismatch",
+      "auto": {
+        "rule": "learning",
+        "all": [
+          "shadow",
+          "0\\.1 ?%",
+          "7.days?|seven.days?"
+        ]
+      }
     }
   ]
 }

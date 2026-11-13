@@ -1,15 +1,15 @@
 ---
 id: 2026-09-22-store-readings-in-utc
-title: Store meter readings in UTC and convert only at billing export
+title: Store meter readings in UTC and convert to local time only at billing export
 type: decision
 project: alpha
 date: 2026-09-22
 owner_role: TL
 confidence: high
 sensitivity: internal
-sources: [decisions/ADR-001-store-readings-in-utc.md, sources/alpha-team-channel-log-september.md]
+sources: [decisions/ADR-001-store-readings-in-utc.md, https://github.com/eraserhead21/company-brain-poc/issues/2]
 supersedes: none
 ---
-**Context:** Meter local time repeats one hour at the daylight-saving change on 25 October 2026.
-**What happened:** Storing local time double-counts that hour. The team agreed on 21 September to store UTC. ADR-001 was accepted on 22 September.
-**What we learned:** Convert reading_ts to UTC at ingestion. Convert to local time only in the billing export. Any local-time report must convert explicitly.
+**Context:** Meters report reading time in meter local time. On the daylight-saving change of 25 October 2026, local times between 02:00 and 03:00 occur twice.
+**What happened:** Storing local time double-counted that hour in the test replay, with aggregates about 4% high. The team decided to convert readings to UTC at ingestion and store UTC only.
+**What we learned:** Store time in UTC and convert to local time only at the billing export. Any report that shows local time must convert explicitly.

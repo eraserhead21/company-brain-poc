@@ -3,6 +3,7 @@
   "drive_folder_id": "1rOYjrL-p17tY_QRdOsfXUK1JX5SKeXXH",
   "drive_folder_url": "https://drive.google.com/drive/folders/1rOYjrL-p17tY_QRdOsfXUK1JX5SKeXXH",
   "repo": "eraserhead21/company-brain-poc",
+  "repo_aliases": ["eraserhead21/claude-org-poc"],
   "drive_sources": {
     "Alpha - Project Charter": "sources/alpha-project-charter.md",
     "Alpha - Solution Design v1": "sources/alpha-solution-design-v1.md",

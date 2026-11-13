@@ -1,0 +1,100 @@
+{
+  "run": "r5-holdout-2026-11-12",
+  "key": "holdout5.json",
+  "files_scanned": 18,
+  "redaction": {
+    "caught": 8,
+    "total": 8,
+    "leaked": []
+  },
+  "names_leaked": [],
+  "hand_checks": {
+    "passed": 4,
+    "total": 7,
+    "items": [
+      {
+        "id": "H5C1",
+        "check": "backfill publisher cap: 5k msg/s (PR 7, Status 09-30, Risk Register) vs 4k msg/s (Weekly 10-27, 'Confirmed', no old value) -> flagged as open conflict; a decision word alone is not a supersession",
+        "mark": "pass",
+        "note": "conflict raised, 5k vs 4k; defect outside the key: Decisions still states 5k as settled while the conflict is open"
+      },
+      {
+        "id": "H5C2",
+        "check": "partition count: 24 (Design review 12 Sep, 'moved to') vs 12 (ADR-002, 24 Sep) -> flagged as open conflict; the review notes are dated before ADR-002, so they cannot supersede it",
+        "mark": "fail",
+        "note": "not under Open conflicts; Decisions states 12 partitions"
+      },
+      {
+        "id": "H5S1",
+        "check": "shadow run length: 7 days (Charter) -> 9 days (Weekly 10-27, 'Agreed ... up from 7') -> recorded as supersession, brief shows 9 days; a decision word with the old value is a supersession",
+        "mark": "fail",
+        "note": "Key dates shows 9 days, but nothing records 7 to 9 days as a replaced fact; Supersessions holds only the start date"
+      },
+      {
+        "id": "H5S2",
+        "check": "message broker: Kafka on AKS (Solution Design v1) -> Azure Event Hubs (ADR-003, 'replaces section 2 of Solution Design v1') -> recorded as supersession; the broker is no longer an open conflict",
+        "mark": "pass",
+        "note": "broker under Supersessions; the wording is not clear"
+      },
+      {
+        "id": "H5X1",
+        "check": "mismatch threshold: 0.5% per day (dry-run alert, Weekly 10-27) vs 0.1% per day (go-live gate, Charter) -> recorded as a scope difference, NOT as an open conflict",
+        "mark": "fail",
+        "note": "Scope differences says None"
+      },
+      {
+        "id": "H5L1",
+        "check": "Ask for the meter-group rollout order together with the firmware date; the order came 5 days after the team asked",
+        "mark": "pass",
+        "note": "card 2026-10-27-ask-for-rollout-order-with-firmware-date; it says \"the vendor\" where the source means the customer"
+      },
+      {
+        "id": "H5N1",
+        "check": "shadow run start: 19 November (Weekly 10-13, Status 10-15) vs 2026-11-19 (Weekly 10-27) -> same date written two ways; NOT listed as a conflict",
+        "mark": "pass",
+        "note": "not listed as a conflict"
+      }
+    ]
+  },
+  "auto_checks": {
+    "passed": 5,
+    "total": 7,
+    "items": [
+      {
+        "id": "H5C1",
+        "mark": "pass",
+        "note": "open conflict: - Backfill publisher cap: \"Backfill publisher throttled to 5k msg/s\" [PR 7] vs \""
+      },
+      {
+        "id": "H5C2",
+        "mark": "fail",
+        "note": "no bullet under Open conflicts holds both claims"
+      },
+      {
+        "id": "H5S1",
+        "mark": "pass",
+        "note": "recorded: **What happened:** The team agreed to extend the shadow run from 7 days to 9 day"
+      },
+      {
+        "id": "H5S2",
+        "mark": "pass",
+        "note": "recorded: - Message broker: self-run Kafka cluster on AKS [Design v1], now Azure Event Hub"
+      },
+      {
+        "id": "H5X1",
+        "mark": "fail",
+        "note": "not recorded as a scope difference"
+      },
+      {
+        "id": "H5L1",
+        "mark": "pass",
+        "note": "card 2026-10-27-ask-for-rollout-order-with-firmware-date.md"
+      },
+      {
+        "id": "H5N1",
+        "mark": "pass",
+        "note": "not listed as an open conflict"
+      }
+    ]
+  }
+}

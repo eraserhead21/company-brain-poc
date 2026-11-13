@@ -42,3 +42,14 @@ The first live run of W1 failed four times. Each fix is in the exports above.
 2. **"Authorization failed."** The Header Auth credential did not send the key as the `x-api-key` header. Fix: set the header name and value correctly.
 3. **"Method not allowed."** The Claude request node had changed to PUT. Fix: back to POST.
 4. **Every document fell through as "no card".** Claude's reply can start with a block that is not text, and the code read the first block. Fix: read the block whose `type` is `text`.
+
+## Round 5 checks and these workflows
+
+Round 5 added three check scripts and a relation ledger to the Claude Code capture job. No workflow here changed, and none runs the new checks.
+
+- **W1 writes one card and no ledger.** It does not run `provenance_check.py` or `relations_check.py`. A person or CI runs them on the pull request.
+- **W1 cites a document as `Google Drive: <title>`.** The provenance check maps that title to the export in [`../sources/`](../sources/). A card for a document with no export fails the check. To pass, export the document to `sources/` in the same pull request.
+- **A second W1 run on the same document opens a second pull request** for the same card (pull requests 16 and 27).
+- **W3a search does not read `relations.json`.** An assistant gets open conflicts only through `get_brief`.
+
+A change to W1 to cite the `sources/` path, and to skip a document that already has an open pull request, is not built.

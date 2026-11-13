@@ -1,0 +1,38 @@
+{
+  "_note": "Held-out answer key for round 5, written 2026-11-12 before the three held-out documents were added to the repo and before any run saw them. Rules frozen at the commit named in iterations/05-provenance-and-relations.md. Capture and lint must never read tests/.",
+  "redaction_seeds": [
+    {"id": 1, "kind": "pay, in words", "match": "nine hundred", "where": "Weekly 10-27"},
+    {"id": 2, "kind": "health, no keyword", "match": "\\boperation\\b|recovering", "regex": true, "where": "Weekly 10-27"},
+    {"id": 3, "kind": "leave", "match": "half days", "where": "Weekly 10-27"},
+    {"id": 4, "kind": "phone, local format", "match": "1111 2222", "where": "Weekly 10-27"},
+    {"id": 5, "kind": "vendor switch, paraphrase", "match": "walk away|another supplier", "regex": true, "where": "Weekly 10-27"},
+    {"id": 6, "kind": "customer account, no prefix", "match": "7741", "where": "Weekly 10-27"},
+    {"id": 7, "kind": "access token", "match": "ghp_test", "where": "Design review 09-12"},
+    {"id": 8, "kind": "date of birth, two forms", "match": "1988|7 June", "regex": true, "where": "Design review 09-12"}
+  ],
+  "names": ["Priya", "Raman", "Marco", "Silva", "Jun Park", "Aisha", "Bello", "Tom Eriksen", "Eriksen", "Janet", "Okafor", "Lena", "Vogt", "Dmitri", "Kovac"],
+  "contradictions": [
+    {"id": "H5C1", "topic": "backfill publisher cap", "a": "5k msg/s (PR 7, Status 09-30, Risk Register)", "b": "4k msg/s (Weekly 10-27, 'Confirmed', no old value)", "expected": "flagged as open conflict; a decision word alone is not a supersession",
+     "auto": {"rule": "conflict", "all": ["cap|throttle|publisher", "\\b4k\\b|4,000", "\\b5k\\b|5,000"]}},
+    {"id": "H5C2", "topic": "partition count", "a": "24 (Design review 12 Sep, 'moved to')", "b": "12 (ADR-002, 24 Sep)", "expected": "flagged as open conflict; the review notes are dated before ADR-002, so they cannot supersede it",
+     "auto": {"rule": "conflict", "all": ["partition", "\\b24\\b", "\\b12\\b"]}}
+  ],
+  "supersessions": [
+    {"id": "H5S1", "topic": "shadow run length", "old": "7 days (Charter)", "new": "9 days (Weekly 10-27, 'Agreed ... up from 7')", "expected": "recorded as supersession, brief shows 9 days; a decision word with the old value is a supersession",
+     "auto": {"rule": "supersession", "topic": "shadow", "old": "\\b7\\b|seven", "new": "\\b9[- ]days?\\b|nine days"}},
+    {"id": "H5S2", "topic": "message broker", "old": "Kafka on AKS (Solution Design v1)", "new": "Azure Event Hubs (ADR-003, 'replaces section 2 of Solution Design v1')", "expected": "recorded as supersession; the broker is no longer an open conflict",
+     "auto": {"rule": "supersession", "topic": "broker", "old": "kafka", "new": "event hubs"}}
+  ],
+  "scopes": [
+    {"id": "H5X1", "topic": "mismatch threshold", "a": "0.5% per day (dry-run alert, Weekly 10-27)", "b": "0.1% per day (go-live gate, Charter)", "expected": "recorded as a scope difference, NOT as an open conflict",
+     "auto": {"rule": "scope", "all": ["0\\.5 ?%", "0\\.1 ?%"]}}
+  ],
+  "expected_learnings": [
+    {"id": "H5L1", "lesson": "Ask for the meter-group rollout order together with the firmware date; the order came 5 days after the team asked",
+     "auto": {"rule": "learning", "all": ["rollout order", "firmware"]}}
+  ],
+  "negatives": [
+    {"id": "H5N1", "topic": "shadow run start", "a": "19 November (Weekly 10-13, Status 10-15)", "b": "2026-11-19 (Weekly 10-27)", "expected": "same date written two ways; NOT listed as a conflict",
+     "auto": {"rule": "not_conflict", "all": ["shadow", "19 Nov|2026-11-19"]}}
+  ]
+}
