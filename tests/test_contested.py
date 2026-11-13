@@ -160,6 +160,18 @@ class RedTeam(unittest.TestCase):
         msgs = contested([OWNER], b)
         self.assertTrue(any("Decisions" in m for m in msgs), msgs)
 
+    def test_a_claim_that_the_brief_line_shortens_fails(self):
+        # Round 5 rebuild, attempt 1 (74e64ae): the ledger claim starts with "Use". The brief line does not.
+        broker = {"id": "broker", "topic": "Message broker", "type": "contradiction", "claims": [
+            {"value": "Kafka on AKS, 3 brokers, 12 partitions keyed by meter_id", "source": DESIGN},
+            {"value": "Use Azure Event Hubs (Standard tier, 12 partitions, keyed by meter_id)", "source": "decisions/ADR-002-message-broker.md"}]}
+        b = brief(['- Message broker: "Kafka on AKS, 3 brokers, 12 partitions keyed by meter_id" [Design v1] versus '
+                   '"Use Azure Event Hubs (Standard tier, 12 partitions, keyed by meter_id)" [ADR-002]'],
+                  decisions=["- Message broker: Azure Event Hubs, Standard tier, 12 partitions keyed by meter_id. [ADR-002]"])
+        b = b.replace("## Sources\n\n", "## Sources\n\n- ADR-002: x. decisions/ADR-002-message-broker.md\n")
+        msgs = contested([broker], b)
+        self.assertTrue(len(msgs) == 1 and "Decisions" in msgs[0], msgs)
+
     def test_a_line_that_names_the_item_with_no_value_passes(self):
         b = brief([OWNER_CONFLICT], decisions=["- Shadow run needs a sign-off before go-live [Status 10-15]"])
         self.assertEqual(contested([OWNER], b), [])
