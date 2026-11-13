@@ -180,7 +180,8 @@ class Source:
         else:
             self.path, self.rel, self.text, ids = None, "", text, set()
         self.lines = self.text.splitlines()
-        self.atoms = extract(self.text) | ids
+        # A section number ("7. Open questions") is not a fact of the document.
+        self.atoms = extract(re.sub(r"(?m)^(\s*)\d{1,2}\.(?=\s)", r"\1", self.text)) | ids
         self.low = normalise(self.text)
         self.stems = {stem(w) for w in WORD.findall(self.text)}
         self.prefixes = {w.lower()[:5] for w in WORD.findall(self.text) if len(w) >= 4}

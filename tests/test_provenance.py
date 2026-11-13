@@ -226,5 +226,12 @@ class AfterRound5(unittest.TestCase):
         r = pc.check_card_text(card("Go-live moved to 28 November.", "Google Drive: Alpha - No Such Document"), REPO)
         self.assertTrue(any("no export" in m for m in fails(r)), fails(r))
 
+    def test_section_number_in_a_source_is_not_a_fact(self):
+        # Solution Design v1 has a section "7. Open questions". It must not support "7x".
+        r = pc.check_card_text(card("The test ran at 7x the estimate.", "sources/alpha-solution-design-v1.md",
+                                    date="2026-09-10"), REPO)
+        self.assertTrue(any("7x" in m for m in fails(r)), fails(r))
+
+
 if __name__ == "__main__":
     unittest.main()
