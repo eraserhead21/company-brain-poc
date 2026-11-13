@@ -98,6 +98,33 @@
         {"value": "Estimated 5 days", "source": "sources/alpha-solution-design-v1.md"},
         {"value": "needs about 15 days, not 5", "source": "sources/alpha-meeting-notes-2026-09-29-weekly.md"}
       ]
+    },
+    {
+      "id": "mismatch-gate-threshold",
+      "topic": "go-live gate daily mismatch threshold",
+      "type": "supersession",
+      "claims": [
+        {"value": "Go-live gate: daily mismatch under 0.2% across the shadow run.", "source": "sources/alpha-status-update-2026-11-05.md"},
+        {"value": "Correction to the 5 November status update: the go-live gate is 0.1% daily mismatch, not 0.2%.", "source": "sources/alpha-meeting-notes-2026-11-10-weekly.md"}
+      ]
+    },
+    {
+      "id": "shadow-run-comparison-window",
+      "topic": "shadow-run comparison window",
+      "type": "contradiction",
+      "claims": [
+        {"value": "Shadow-run comparison window is the billing local day, 00:00 to 00:00", "source": "sources/alpha-meeting-notes-2026-10-13-weekly.md"},
+        {"value": "Decided with Northwind finance: the shadow-run comparison window is the UTC day.", "source": "sources/alpha-meeting-notes-2026-11-10-weekly.md"}
+      ]
+    },
+    {
+      "id": "event-hub-partitions",
+      "topic": "Event Hubs partition count",
+      "type": "contradiction",
+      "claims": [
+        {"value": "Message broker: Azure Event Hubs, Standard tier, 12 partitions keyed by meter_id", "source": "decisions/ADR-002-message-broker.md"},
+        {"value": "Platform team confirmed: the Event Hubs namespace has 32 partitions", "source": "sources/alpha-status-update-2026-11-05.md"}
+      ]
     }
   ]
 }
