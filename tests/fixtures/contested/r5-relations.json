@@ -1,0 +1,103 @@
+{
+  "relations": [
+    {
+      "id": "broker-platform",
+      "topic": "message broker platform",
+      "type": "supersession",
+      "claims": [
+        {"value": "Kafka on AKS, 3 brokers, 12 partitions keyed by meter_id", "source": "sources/alpha-solution-design-v1.md"},
+        {"value": "Azure Event Hubs is the message broker. This record replaces section 2 (Message broker) of Solution Design v1.", "source": "decisions/ADR-003-design-doc-broker-section.md"}
+      ]
+    },
+    {
+      "id": "backfill-publisher-cap",
+      "topic": "backfill publisher rate cap",
+      "type": "contradiction",
+      "claims": [
+        {"value": "Backfill publisher throttled to 5k msg/s", "source": "https://github.com/eraserhead21/company-brain-poc/pull/7"},
+        {"value": "Confirmed: the backfill publisher cap is 4k msg/s", "source": "sources/alpha-meeting-notes-2026-10-27-weekly.md"}
+      ]
+    },
+    {
+      "id": "raw-readings-retention",
+      "topic": "raw readings retention",
+      "type": "contradiction",
+      "claims": [
+        {"value": "Raw readings retained for 90 days for audit and replay", "source": "sources/alpha-solution-design-v1.md"},
+        {"value": "raw readings retention is 30 days, not longer", "source": "sources/alpha-meeting-notes-2026-09-29-weekly.md"}
+      ]
+    },
+    {
+      "id": "shadow-run-signoff-owner",
+      "topic": "shadow-run sign-off owner",
+      "type": "contradiction",
+      "claims": [
+        {"value": "Shadow-run sign-off owner: PM", "source": "sources/alpha-status-update-2026-10-15.md"},
+        {"value": "The Tech Lead signs off the shadow run before go-live", "source": "https://github.com/eraserhead21/company-brain-poc/issues/12"}
+      ]
+    },
+    {
+      "id": "oncall-rota-owner",
+      "topic": "on-call rota owner from October",
+      "type": "contradiction",
+      "claims": [
+        {"value": "Engineer B owns the on-call rota from October", "source": "sources/alpha-team-channel-log-september.md", "redacted": true},
+        {"value": "On-call rota owner from October: Engineer A", "source": "sources/alpha-status-update-2026-09-30.md", "redacted": true}
+      ]
+    },
+    {
+      "id": "billing-export-interval",
+      "topic": "billing export interval",
+      "type": "contradiction",
+      "claims": [
+        {"value": "Billing export interval: 15 minutes", "source": "sources/alpha-meeting-notes-2026-10-13-weekly.md"},
+        {"value": "Billing export batch interval is 5 minutes", "source": "https://github.com/eraserhead21/company-brain-poc/issues/12"}
+      ]
+    },
+    {
+      "id": "go-live-date",
+      "topic": "go-live date",
+      "type": "supersession",
+      "claims": [
+        {"value": "Go-live: 14 November 2026", "source": "sources/alpha-project-charter.md"},
+        {"value": "Go-live moved to 28 November 2026 (was 14 November)", "source": "sources/alpha-status-update-2026-09-30.md"}
+      ]
+    },
+    {
+      "id": "shadow-run-start-1",
+      "topic": "shadow run start date",
+      "type": "supersession",
+      "claims": [
+        {"value": "Shadow run starts 3 November 2026", "source": "sources/alpha-project-charter.md"},
+        {"value": "Shadow run now starts 17 November", "source": "sources/alpha-status-update-2026-09-30.md"}
+      ]
+    },
+    {
+      "id": "shadow-run-start-2",
+      "topic": "shadow run start date",
+      "type": "supersession",
+      "claims": [
+        {"value": "Shadow run now starts 17 November", "source": "sources/alpha-status-update-2026-09-30.md"},
+        {"value": "Shadow run start moved to 19 November (was 17 November)", "source": "sources/alpha-meeting-notes-2026-10-13-weekly.md"}
+      ]
+    },
+    {
+      "id": "firmware-v24-rollout-date",
+      "topic": "firmware v2.4 rollout date",
+      "type": "supersession",
+      "claims": [
+        {"value": "Firmware v2.4 fix ships on 20 October", "source": "sources/alpha-status-update-2026-10-01.md"},
+        {"value": "Firmware v2.4 rollout slipped one week, to 27 October", "source": "sources/alpha-meeting-notes-2026-10-13-weekly.md"}
+      ]
+    },
+    {
+      "id": "backfill-duration",
+      "topic": "18-month backfill duration",
+      "type": "supersession",
+      "claims": [
+        {"value": "Estimated 5 days", "source": "sources/alpha-solution-design-v1.md"},
+        {"value": "needs about 15 days, not 5", "source": "sources/alpha-meeting-notes-2026-09-29-weekly.md"}
+      ]
+    }
+  ]
+}
