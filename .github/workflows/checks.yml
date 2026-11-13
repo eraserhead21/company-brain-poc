@@ -1,7 +1,5 @@
-# Proposed GitHub Actions workflow. To turn it on, move this file to
-# .github/workflows/checks.yml. It sits here because the token that opened the
-# pull request has no "workflow" scope, so it cannot push into .github/workflows/.
-# It has not run on GitHub yet.
+# Runs every check on each pull request and on each push to main:
+# unit tests, redaction, provenance, relations and the answer keys.
 name: checks
 on:
   pull_request:
