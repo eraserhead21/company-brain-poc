@@ -208,5 +208,23 @@ class KnownGaps(unittest.TestCase):
         self.assertFalse(any("policy" in m for m in fails(r)))
 
 
+
+class AfterRound5(unittest.TestCase):
+    """Two faults found during round 5. Fixed after the held-out run, so the
+    round ran with both faults in place."""
+
+    def test_none_as_a_bullet_is_not_a_fact(self):
+        brief = "# Brief\n\n## Scope differences\n\n- None.\n\n## Sources\n\n- Status 09-30: x. sources/alpha-status-update-2026-09-30.md\n"
+        self.assertEqual(fails(pc.check_brief_text(brief, REPO)), [])
+
+    def test_n8n_card_that_cites_a_drive_title_resolves(self):
+        # W1 (n8n) writes "Google Drive: <document title>" in sources.
+        r = pc.check_card_text((FIX / "w1-card-drive-title.md").read_text(encoding="utf-8"), REPO)
+        self.assertEqual(fails(r), [])
+
+    def test_drive_title_with_no_export_fails(self):
+        r = pc.check_card_text(card("Go-live moved to 28 November.", "Google Drive: Alpha - No Such Document"), REPO)
+        self.assertTrue(any("no export" in m for m in fails(r)), fails(r))
+
 if __name__ == "__main__":
     unittest.main()

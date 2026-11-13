@@ -188,10 +188,9 @@ def check_brief_text(text, root, file="brief.md", store=None):
         if line.startswith("## "):
             section = line[3:].strip().lower()
             continue
-        fact = line.strip()
+        fact = re.sub(r"^[-*]\s+", "", line.strip())
         if section in (None, "sources") or not fact or fact.lower().rstrip(".") == "none":
             continue
-        fact = re.sub(r"^[-*]\s+", "", fact)
         refs = [r for group in BRACKET.findall(fact) for r in group.split(";")]
         if not refs:
             result.failures.append(Failure(file, i, "fact with no citation"))

@@ -66,6 +66,7 @@ QUANTITY = {
 
 GH_URL = re.compile(r"^https://github\.com/([^/\s]+/[^/\s]+)/(issues|pull)/(\d+)/?$")
 DRIVE_URL = re.compile(r"^https://docs\.google\.com/document/d/([\w-]+)")
+DRIVE_TITLE = re.compile(r"^Google Drive:\s*(.+)$", re.I)
 HEADER = re.compile(r"\A\s*<!--.*?-->", re.S)
 WORD = re.compile(r"[A-Za-z][A-Za-z']*")
 
@@ -101,7 +102,10 @@ def strip_header(text):
 
 
 def _drive_index(root):
+    """Drive file id, and Drive document title, to the export in sources/."""
     index = {}
+    for title, rel in config(root).get("drive_sources", {}).items():
+        index[title.strip().lower()] = rel
     folder = Path(root) / "sources"
     if folder.is_dir():
         for f in sorted(folder.glob("*.md")):
@@ -109,6 +113,9 @@ def _drive_index(root):
             m = re.search(r"Drive file ([\w-]+)", head)
             if m:
                 index[m.group(1)] = f"sources/{f.name}"
+            t = re.search(r'Google Drive doc "([^"]+)"', head)
+            if t:
+                index[t.group(1).strip().lower()] = f"sources/{f.name}"
     return index
 
 
@@ -127,8 +134,10 @@ def resolve(citation, root):
         if names and m.group(1).lower() not in names:
             return None, "the URL is for another repo"
         rel = f"sources/github/{'issue' if m.group(2) == 'issues' else 'pr'}-{m.group(3)}.md"
-    elif d:
-        rel = _drive_index(root).get(d.group(1))
+    elif d or DRIVE_TITLE.match(cite):
+        # An old card cites the Drive URL. An n8n card cites "Google Drive: <title>".
+        key = d.group(1) if d else DRIVE_TITLE.match(cite).group(1).strip().lower()
+        rel = _drive_index(root).get(key)
         if not rel:
             return None, "no export in sources/ for this Drive document"
     elif re.match(r"^[a-z][a-z0-9+.-]*://", cite, re.I):
