@@ -276,7 +276,7 @@ The biggest gap: the newest unseen test passed 4 of 7 judgement tests, and the c
 - **The pattern check misses paraphrases.** It does not catch pay written in words, a health note with no keyword, a token with no colon, a supplier switch in other words, or an account number with no prefix. Claude caught all 8 such details in round 5. The pattern check is then no second layer.
 - **A full rebuild renames cards.** 3 of the 13 card IDs survived the round 5 rebuild. An eval case that names a card ID can break.
 - **The n8n workflows do not run the new checks.** W1 writes one card and no ledger, and it cites a document by its Drive title. The provenance check can read that citation only when the document has an export in `sources/`. A second W1 run on the same document opened a second pull request for the same card (#16 and #27).
-- **The checks do not run on GitHub yet.** [`ci/checks.yml`](ci/checks.yml) is a proposed workflow. It has not run.
+- **A failed check does not block a merge.** The checks run on GitHub for each pull request and each push to `main` ([`checks.yml`](.github/workflows/checks.yml), first run on 2026-11-13). No branch rule requires a pass, so a person can still merge a pull request that fails.
 - **No card owner or review date.** Cards never expire. The provenance check flags a card when its source changes and the fact is gone, but only when someone runs it.
 - **Cost.** A full rebuild took about 59,000 Haiku tokens in round 1 and 123,500 in round 5. A small update took 95,500. The cost test in [`tests/eval_questions.md`](tests/eval_questions.md), which compares answering from the brief with answering from the original documents, has not run.
 - **The feedback loop is new.** It went live on 2026-11-10 and has run only on fictional test questions. W4b has no baseline until a person merges the first feedback PR. Repeated W4 runs and one-sided ratings are not tested.
@@ -300,7 +300,7 @@ The biggest gap: the newest unseen test passed 4 of 7 judgement tests, and the c
 | [`iterations/`](iterations/) | One page per improvement round |
 | [`tests/`](tests/) | Answer keys, the scoring script, and saved results |
 | [`scripts/`](scripts/) | The three checks (redaction, provenance, relations), one command that runs every check, and the scripts that stage sources and save GitHub issues |
-| [`ci/checks.yml`](ci/checks.yml) | A proposed GitHub Actions workflow that runs the checks on every pull request. Not active yet |
+| [`.github/workflows/checks.yml`](.github/workflows/checks.yml) | The GitHub Actions workflow that runs the checks on every pull request and every push to `main` |
 | [`.claude/`](.claude/) | The Claude Code commands for capture and checking, and the small-model helpers they use |
 | [`project-instructions/`](project-instructions/) | Instructions for the two claude.ai Projects |
 | [`log.md`](log.md) | A log of every run: counts, cost, and where the last run stopped |
