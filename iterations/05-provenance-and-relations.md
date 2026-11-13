@@ -5,7 +5,7 @@
 - **Runs:** two full rebuilds from all sources, then one delta run on 3 unseen documents. All three in staged mode (see below). See `log.md`.
 - **Rules:** [8616e88](https://github.com/eraserhead21/company-brain-poc/commit/8616e88), frozen before the unseen documents were added.
 - **Score records:** `tests/results/r5-rebuild-1-2026-11-12.json`, `r5-rebuild-2026-11-12.json`, `r5-rebuild-holdout4-2026-11-12.json`, `r5-holdout-2026-11-12.json`, `r5-regression-2026-11-12.json`, `r5-regression-holdout4-2026-11-12.json`.
-- **Marks:** a script marked the judgement tests in this round (`score.py --auto`). No person has marked round 5.
+- **Marks:** a script marked the rebuild (`score.py --auto`). A person marked the unseen set on 2026-11-13: `tests/results/r5-holdout-2026-11-12.marks.txt`. No person has marked the rebuild.
 
 ## What changed
 
@@ -52,14 +52,13 @@ Same key, before and after. "Round 4" is the output on `main`. "Round 5" is rebu
 |---|---|
 | Redaction | 8/8 |
 | Names leaked | 0 |
-| Judgement tests | **5/7** (script) |
+| Judgement tests | **4/7** (person). The script marked 5/7 |
 | Main key after the delta run | 20/20, 0 names, 12/12 (script) |
 | Round 4 key after the delta run | 6/6, 0 names, 6/7 (script) |
 
 What it got right:
 
 - **Decision word alone.** "Confirmed: the backfill publisher cap is 4k msg/s" against 5k in PR 7: listed as an open conflict.
-- **Decision word with the old value.** "Agreed: the shadow run is 9 days, up from 7": a card records 7 to 9 days and the brief shows 9 days. The ledger does not hold it (see below).
 - **A record that names what it replaces.** ADR-003 "replaces section 2 (Message broker) of Solution Design v1": the broker moved from Open conflicts to a supersession.
 - **One date written two ways.** "2026-11-19" and "19 November": not listed as a conflict.
 - **The lesson** became a card: ask for the meter-group rollout order together with the firmware date.
@@ -68,6 +67,7 @@ What it got right:
 
 - **Rebuild attempt 1 lost two lessons.** It fixed C1 but wrote 9 cards and no card for the kickoff access lesson (L4) or the firmware risk (L6): 10/12. Fix: one rule, "Go through the sources one at a time ... A risk in a risk register or an open issue is a risk card" ([8616e88](https://github.com/eraserhead21/company-brain-poc/commit/8616e88)). Attempt 2 wrote 12 cards and scored 12/12. This fix was tuned on the scored set, like rounds 2 and 3.
 - **Unseen set, partition count.** Review notes dated 12 September say "moved to 24". ADR-002, dated 24 September, says 12. Capture did not make 24 the current value, which is correct. It also did not list the conflict. Its report gave the cause: a delta run reads only the new documents, and it would not record a relation against a document it had not read in that run.
+- **Unseen set, shadow run length.** "Agreed: the shadow run is 9 days, up from 7." A card records 7 to 9 days and Key dates shows 9 days. The ledger and the Supersessions section do not hold the change. The script passed this test. The person failed it.
 - **Unseen set, scope difference.** A dry-run alert at 0.5% per day and the go-live gate at 0.1% per day are two scopes. Capture recorded nothing. No run in this round wrote a scope relation, so only unit tests cover that type.
 - **Round 4 key after the delta run: HS2 fails by script.** The new weekly notes say the firmware rollout finished, so the brief dropped the "27 October" line from Key dates. The date is still under Supersessions. The script rule wants it stated outside that section. The round 4 key was written for the round 4 sources.
 
@@ -88,8 +88,10 @@ Cases written to break each part. The ones that held are now tests. The ones tha
 
 ## New problems seen
 
-- **The checks pass an output that misses a relation.** All three checks reported 0 failures on the unseen run that scored 5/7. They test what capture wrote. They cannot find what it left out.
-- **A script mark is cruder than a person.** The first rule set agreed with 54 of the 55 saved human marks. It missed "3 times" for "3x". After that one rule change it agrees with 55 of 55. The rules were written with those marks in view.
+- **The checks pass an output that misses a relation.** All three checks reported 0 failures on the unseen run that scored 4/7. They test what capture wrote. They cannot find what it left out.
+- **A script mark is cruder than a person.** The first rule set agreed with 54 of the 55 saved human marks. It missed "3 times" for "3x". After that one rule change it agrees with 55 of 55. The rules were written with those marks in view. On the unseen set it agrees with 6 of 7: it passed the shadow run length test, and the person failed it.
+- **A contested value stated as a decision.** The brief lists the backfill cap under Open conflicts (5k against 4k) and still gives 5k under Decisions. The key does not test this, so the test passed. The person who marked the set found it. Issue: claude-vault#139.
+- **A role slip.** One card says "the vendor" where the source means the customer. The provenance check cannot see this.
 - **A full rebuild renames cards.** 3 of the 13 card IDs on `main` are still there after the rebuild. An eval case that names a card ID can break.
 - **n8n W1 cards cite "Google Drive: <title>".** The check now maps that to the export in `sources/`. A W1 card for a document with no export fails the check.
 - **The supersession in a card, not in the ledger.** For "9 days, up from 7" the delta run wrote a card but no relation, because the document with the old value was not in that run.

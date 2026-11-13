@@ -199,7 +199,7 @@ Three scripts test the output against the documents. They use no model and no ne
 - **Planted errors.** A test changes one number, date, or version in each card line and swaps each card's sources. The check catches 80 of 87. In the 7 it misses, the wrong value is also in a cited document.
 - **The missed conflict, first.** Before any rule changed, a test showed that the round 4 output fails: "retention 90 days moved to 30 days" has no evidence of a change.
 - **Red-team cases.** Each check has cases written to break it. The cases that held are tests. The cases that broke a check are also tests, named as known gaps.
-- **Script marks against a person's marks.** The script agrees with all 55 marks that a person saved in rounds 1 to 4. The first set of rules agreed with 54.
+- **Script marks against a person's marks.** The script agrees with all 55 marks that a person saved in rounds 1 to 4. The first set of rules agreed with 54. On the second unseen set the script agrees with 6 of the 7 marks: it passed one test that the person failed.
 
 One command runs everything: `python scripts/run_checks.py`. For the full record, see [round 5](iterations/05-provenance-and-relations.md).
 
@@ -207,7 +207,7 @@ One command runs everything: `python scripts/run_checks.py`. For the full record
 
 ## Results
 
-Redaction held in all 5 rounds with 0 names leaked. Judgement tests rose from 8/12 to 12/12 on the main set. On unseen documents they passed 7/7 in round 4 and 5/7 in round 5.
+Redaction held in all 5 rounds with 0 names leaked. Judgement tests rose from 8/12 to 12/12 on the main set. On unseen documents they passed 7/7 in round 4 and 4/7 in round 5.
 
 <details>
 <summary>Show the scores for each round</summary>
@@ -219,9 +219,9 @@ Redaction held in all 5 rounds with 0 names leaked. Judgement tests rose from 8/
 | 3 | Clearer wording for conflicts, after reviewer feedback | 20/20 | 0 | 11/12, less clutter |
 | 4 | **Unseen documents (a held-out set), rules locked** | **6/6** | **0** | **7/7** |
 | 5 | Typed relations, provenance check, checks inside capture | 20/20 | 0 | 12/12, marked by a script |
-| 5 | **Second set of unseen documents, rules locked** | **8/8** | **0** | **5/7, marked by a script** |
+| 5 | **Second set of unseen documents, rules locked** | **8/8** | **0** | **4/7** (a script marked 5/7) |
 
-A person marked rounds 1 to 4. A script marked round 5.
+A person marked rounds 1 to 4 and the second unseen set. A script marked the round 5 rebuild.
 
 New checks in round 5, on the same output before and after:
 
@@ -237,26 +237,27 @@ Each round has a page in [`iterations/`](iterations/) with its failures, the exa
 
 ## Known gaps
 
-The biggest gap: the newest unseen test passed 5 of 7 judgement tests, and the checks did not see the two misses.
+The biggest gap: the newest unseen test passed 4 of 7 judgement tests, and the checks did not see the three misses.
 
 <details>
 <summary>Show what round 5 closed</summary>
 
 - **The missed conflict (C1) is fixed.** A meeting note says "Agreed: retention is 30 days"; the design document says 90. The brief now lists both under Open conflicts. "Agreed" alone no longer replaces a fact.
 - **Made-up facts now have a test, in part.** The provenance check fails 3 of the 4 facts that round 1 made up. See the first gap below for what it misses.
-- **A script now marks the judgement tests, in part.** It agrees with all 55 marks that a person saved in rounds 1 to 4. See the gaps below for its limits.
+- **A script now marks the judgement tests, in part.** It agrees with all 55 marks that a person saved in rounds 1 to 4, and with 6 of 7 on the second unseen set. See the gaps below for its limits.
 - **Replaced facts keep their history.** [`relations.json`](relations.json) holds every relation and has no word limit. The brief still trims other facts to fit 600 words.
 
 </details>
 
 <details>
-<summary>Show all 16 open gaps</summary>
+<summary>Show all 17 open gaps</summary>
 
 - **The provenance check reads words, not meaning.** It misses a claim that reverses its source ("No duplicates" to "Duplicates were seen"), a wrong number that the source also holds, and a made-up reason with no number in it. It lists unknown words for a person. Only a model or a person can judge meaning.
-- **Two misses on the second unseen set.** An old review note says the partition count "moved to 24"; a later decision record says 12. Capture kept 12, which is correct, but did not list the conflict. It also did not record that an alert limit for a test run and the limit for go-live are two scopes. For the cause that capture reported, see [round 5](iterations/05-provenance-and-relations.md#what-failed).
-- **The checks cannot find what capture left out.** They test each relation that capture wrote. All three reported 0 failures on the run that missed two relations.
+- **Three misses on the second unseen set.** An old review note says the partition count "moved to 24"; a later decision record says 12. Capture kept 12, which is correct, but did not list the conflict. It did not record that an alert limit for a test run and the limit for go-live are two scopes. It wrote "9 days" for a test run that was 7 days, and did not record that 9 replaced 7. For the cause that capture reported, see [round 5](iterations/05-provenance-and-relations.md#what-failed).
+- **The brief can state a contested value as a decision.** In round 5 the brief lists a limit under Open conflicts (5k against 4k) and still gives 5k under Decisions. No test and no check covers this. A person found it while marking.
+- **The checks cannot find what capture left out.** They test each relation that capture wrote. All three reported 0 failures on the run that missed three relations.
 - **No run has written a scope difference.** Only unit tests cover that type.
-- **A script marked round 5, and no person has.** The script uses keyword rules, written with the earlier human marks in view. It is cruder than a person. Its first rule set missed "3 times" for "3x".
+- **The script is more lenient than a person.** On the second unseen set the script passed 5 of 7 and a person passed 4. The script took a card and a date line as the record of a replaced fact. A script marked the round 5 rebuild (12/12), and no person has. The script uses keyword rules, written with the earlier human marks in view.
 - **Same person, same test.** I tuned rounds 2, 3, and 5 on the test I scored them on. I also wrote both unseen sets, their keys, and the rules.
 - **Nothing enforces the wall around the tests.** The rules tell capture not to open the answer keys, the iteration pages, this README, or old log lines. Capture reports the files it opened. No permission blocks it.
 - **Redaction covers the knowledge base, not the original documents.** A Project that read the Drive documents directly gave out a team member's leave dates. The original documents need their own access controls.
