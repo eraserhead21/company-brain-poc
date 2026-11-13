@@ -1,11 +1,14 @@
 # Project Alpha brief
 
-Compiled: 2026-11-12T14:46:06Z, cursor 2026-11-12T14:46:06Z, by capture
+Compiled: 2026-11-13T06:56:17Z, cursor 2026-11-13T06:56:17Z, by capture
 
 ## Status
 
-- Overall: AMBER [Status 10-15]
+- Overall: AMBER [Status 11-05]
 - Firmware v2.4 rollout finished on the first 3 meter groups [Weekly 10-27]
+- Dry run of the shadow comparison is in week 4, no open alerts [Status 11-05]
+- Dry run missed 2 meter groups, because the group list was copied by hand [Weekly 11-10]
+- Load test: consumer drained 5k msg/s for one hour with no lag [Weekly 11-10]
 
 ## Key dates
 
@@ -16,19 +19,19 @@ Compiled: 2026-11-12T14:46:06Z, cursor 2026-11-12T14:46:06Z, by capture
 ## Decisions
 
 - Store all readings in UTC. Convert to local time only at the billing export [ADR-001]
-- Message broker: Azure Event Hubs, Standard tier, 12 partitions keyed by meter_id [ADR-002]
+- Message broker: Azure Event Hubs, Standard tier. Partition count contested, see Open conflicts [ADR-002] [Status 11-05]
 - Message broker section of Solution Design v1 is replaced by Azure Event Hubs [ADR-003]
 - Delivery is at-least-once, with an idempotent consumer [Design review 09-12]
 - Duplicate readings: idempotency key meter_id plus UTC reading_ts, upsert on conflict [Issue 1]
-- Backfill publisher throttled to 5k msg/s [PR 7]
-- Shadow-run comparison window is the billing local day, 00:00 to 00:00 [Weekly 10-13]
+- Backfill publisher cap contested, see Open conflicts [PR 7] [Weekly 10-27]
+- Shadow-run comparison window contested, see Open conflicts [Weekly 10-13] [Weekly 11-10]
 - Mismatch gate is measured on upgraded meter groups only; v2.3 groups are held out [Status 10-01]
 
 ## Open risks
 
 - Firmware v2.3 sends malformed timestamps; readings are rejected and logged until the customer ships the firmware fix [Risk register]
 - Error logs hold raw customer data; masking is open [Risk register]
-- A shadow-run mismatch above 0.1% per day blocks go-live [Risk register]
+- A shadow-run mismatch above 0.1% per day blocks go-live [Risk register] [Weekly 11-10]
 
 ## Open conflicts
 
@@ -37,6 +40,8 @@ Compiled: 2026-11-12T14:46:06Z, cursor 2026-11-12T14:46:06Z, by capture
 - Shadow-run sign-off owner: "Shadow-run sign-off owner: PM" [Status 10-15] vs "The Tech Lead signs off the shadow run before go-live" [Issue 12]
 - Billing export interval: "Billing export interval: 15 minutes" [Weekly 10-13] vs "Billing export batch interval is 5 minutes" [Issue 12]
 - On-call rota owner from October: "Engineer B owns the on-call rota from October" [Team Channel] vs "On-call rota owner from October: Engineer A" [Status 09-30]
+- Shadow-run comparison window: "Shadow-run comparison window is the billing local day, 00:00 to 00:00" [Weekly 10-13] vs "Decided with Northwind finance: the shadow-run comparison window is the UTC day." [Weekly 11-10]
+- Event Hubs partition count: "Message broker: Azure Event Hubs, Standard tier, 12 partitions keyed by meter_id" [ADR-002] vs "Platform team confirmed: the Event Hubs namespace has 32 partitions" [Status 11-05]
 
 ## Scope differences
 
@@ -49,6 +54,7 @@ None.
 - Shadow run start: 17 November 2026 to 19 November 2026 [Weekly 10-13]
 - Firmware v2.4 rollout: 20 October 2026 [Status 10-01], now 27 October 2026 [Weekly 10-13]
 - Backfill: estimated 5 days, now about 15 days [Weekly 09-29]
+- Go-live gate: daily mismatch under 0.2% [Status 11-05], now 0.1% daily mismatch [Weekly 11-10]
 
 ## Sources
 
@@ -62,9 +68,11 @@ None.
 - Status 09-30: PROJECT ALPHA - STATUS UPDATE, 30 September 2026. sources/alpha-status-update-2026-09-30.md
 - Status 10-01: PROJECT ALPHA - STATUS UPDATE, 1 October 2026. sources/alpha-status-update-2026-10-01.md
 - Status 10-15: PROJECT ALPHA - STATUS UPDATE, 15 October 2026. sources/alpha-status-update-2026-10-15.md
+- Status 11-05: PROJECT ALPHA - STATUS UPDATE, 5 November 2026. sources/alpha-status-update-2026-11-05.md
 - Weekly 09-29: MEETING NOTES - PROJECT ALPHA WEEKLY, 29 September 2026. sources/alpha-meeting-notes-2026-09-29-weekly.md
 - Weekly 10-13: MEETING NOTES - PROJECT ALPHA WEEKLY, 13 October 2026. sources/alpha-meeting-notes-2026-10-13-weekly.md
 - Weekly 10-27: MEETING NOTES - PROJECT ALPHA WEEKLY, 27 October 2026. sources/alpha-meeting-notes-2026-10-27-weekly.md
+- Weekly 11-10: MEETING NOTES - PROJECT ALPHA WEEKLY, 10 November 2026. sources/alpha-meeting-notes-2026-11-10-weekly.md
 - Team Channel: TEAM CHANNEL LOG - #alpha. sources/alpha-team-channel-log-september.md
 - Issue 1: ISSUE 1: Duplicate meter readings after network reconnect. https://github.com/eraserhead21/company-brain-poc/issues/1
 - Issue 12: ISSUE 12: Billing export interval and shadow-run sign-off. https://github.com/eraserhead21/company-brain-poc/issues/12

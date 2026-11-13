@@ -102,6 +102,12 @@ A decision word alone ("agreed", "decided", "confirmed", "approved") is not
 evidence of a change. It does not show that the team knew the earlier claim.
 Record a contradiction.
 
+Each value in a contradiction is contested until a person decides. The brief
+gives it under Open conflicts only. A line in any other section names the
+item and says `contested, see Open conflicts`, with both sources and no
+value. When you answer a question from the brief, give both claims of an
+open conflict. Do not give one as the answer.
+
 ## Checks
 
 Three scripts test the output with no model. Capture runs them before it opens
@@ -111,7 +117,8 @@ a pull request. None of them reads `tests/`.
 - `scripts/provenance_check.py`: every number, date, version and identifier in
   a card or the brief must be in a source that the card or line cites.
 - `scripts/relations_check.py`: every relation in `relations.json` must hold
-  against its sources, and every supersession must have evidence.
+  against its sources, and every supersession must have evidence. No brief
+  line outside Open conflicts may give one side of a contradiction as a fact.
 
 ## Cost rules
 

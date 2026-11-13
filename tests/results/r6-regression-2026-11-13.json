@@ -1,0 +1,155 @@
+{
+  "run": "r6-regression-2026-11-13",
+  "key": "seeds.json",
+  "files_scanned": 19,
+  "redaction": {
+    "caught": 20,
+    "total": 20,
+    "leaked": []
+  },
+  "names_leaked": [],
+  "hand_checks": {
+    "passed": 0,
+    "total": 12,
+    "items": [
+      {
+        "id": "C1",
+        "check": "raw retention: 90 days (Solution Design v1) vs 30 days (Meeting Notes 09-29) -> flagged as open conflict",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "C2",
+        "check": "message broker: Kafka on AKS (Solution Design v1) vs Azure Event Hubs (ADR-002) -> flagged as open conflict, or ADR-002 treated as the later decision with the design doc marked stale",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "C3",
+        "check": "on-call rota owner: Aisha (Channel Log 29 Sep) vs Jun (Status 09-30) -> flagged as open conflict",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "S1",
+        "check": "go-live date: 14 Nov 2026 (Charter) -> 28 Nov 2026 (Status 09-30, 'moved to') -> recorded as supersession, brief shows 28 Nov",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "L1",
+        "check": "Meters resend readings after network drops; use idempotency key meter_id + UTC reading_ts with upsert",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "L2",
+        "check": "DST makes local timestamps repeat; store UTC, convert only at export (ADR-001)",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "L3",
+        "check": "Backfill ran at 3x estimate; broker throttles near 5k msg/s; plan backfill from a measured test, not an estimate",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "L4",
+        "check": "Customer sandbox access can take weeks; request it at kickoff, not after design sign-off",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "L5",
+        "check": "Event Hubs chosen over self-run Kafka because no Kafka ops skills and customer on Azure (ADR-002)",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "L6",
+        "check": "Firmware v2.3 malformed timestamps: reject and log; external dependency delayed go-live (risk)",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "L7",
+        "check": "Error logs captured raw request bodies with customer data; mask before logging (risk)",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "L8",
+        "check": "Go-live gate: 7-day shadow run with under 0.1% daily mismatch",
+        "mark": "unmarked",
+        "note": ""
+      }
+    ]
+  },
+  "auto_checks": {
+    "passed": 12,
+    "total": 12,
+    "items": [
+      {
+        "id": "C1",
+        "mark": "pass",
+        "note": "open conflict: - Raw readings retention: \"Raw readings retained for 90 days for audit and repla"
+      },
+      {
+        "id": "C2",
+        "mark": "pass",
+        "note": "alternative: ledger supersession broker-platform"
+      },
+      {
+        "id": "C3",
+        "mark": "pass",
+        "note": "open conflict: - On-call rota owner from October: \"Engineer B owns the on-call rota from Octobe"
+      },
+      {
+        "id": "S1",
+        "mark": "pass",
+        "note": "recorded: - Go-live: 14 November 2026 to 28 November 2026 [Status 09-30]"
+      },
+      {
+        "id": "L1",
+        "mark": "pass",
+        "note": "card 2026-10-01-idempotency-key-for-meter-resends.md"
+      },
+      {
+        "id": "L2",
+        "mark": "pass",
+        "note": "card 2026-09-22-store-readings-in-utc.md"
+      },
+      {
+        "id": "L3",
+        "mark": "pass",
+        "note": "card 2026-09-29-plan-backfill-from-measured-test.md"
+      },
+      {
+        "id": "L4",
+        "mark": "pass",
+        "note": "card 2026-09-15-request-sandbox-access-at-kickoff.md"
+      },
+      {
+        "id": "L5",
+        "mark": "pass",
+        "note": "card 2026-09-24-event-hubs-for-message-broker.md"
+      },
+      {
+        "id": "L6",
+        "mark": "pass",
+        "note": "card 2026-09-30-firmware-v23-malformed-timestamps.md"
+      },
+      {
+        "id": "L7",
+        "mark": "pass",
+        "note": "card 2026-09-30-error-logs-hold-customer-data.md"
+      },
+      {
+        "id": "L8",
+        "mark": "pass",
+        "note": "card 2026-09-30-shadow-run-mismatch-blocks-go-live.md"
+      }
+    ]
+  }
+}

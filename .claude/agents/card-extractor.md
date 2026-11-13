@@ -128,6 +128,18 @@ task names the Python to use if it is not `python`.
    - **Open conflicts holds one bullet for each `contradiction` in
      `relations.json`, and nothing else.** Each bullet gives both claims, in the
      same words as the ledger, with both sources.
+   - **A contested value is never a settled fact.** Each value in a
+     `contradiction` is contested until a person decides. Go through every
+     other section (Status, Key dates, Decisions, Open risks, Supersessions),
+     line by line, old lines and new. If a line gives either value of a
+     contradiction, whatever source the line cites, take the value out and
+     write that the item is contested, with both sources:
+     `- Launch date: contested, see Open conflicts [Status 04-30] [Notes 05-02]`.
+     Keep the parts of the line that no source disputes. Do not pick the
+     newer value, the older value or the one from the more formal document.
+     When a later source settles the item with evidence, the relation is a
+     `supersession` and no longer a `contradiction`: remove it from Open
+     conflicts and state the new value as usual.
    - **Scope differences** holds one bullet for each `scope` relation, with
      each claim, its scope and its source.
    - **Supersessions** holds the latest change for each item. Older changes

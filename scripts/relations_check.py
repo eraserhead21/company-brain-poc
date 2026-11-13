@@ -23,8 +23,14 @@ The check runs both ways. A contradiction whose later source states the
 change must be a supersession. There is no model and no network. It never
 opens tests/.
 
+A contradiction is open until a person decides. So the check also reads the
+brief: a line outside Open conflicts must not give one side of a
+contradiction as a fact. The line passes when it says "contested".
+
 What it cannot see: the topic. Two values about different things, joined by
 a change word, pass. It also cannot find a relation that capture never wrote.
+The contested-value test is a keyword test: it reads the brief, not the
+cards, and it can miss a claim with no number that is put in other words.
 
 Usage: python scripts/relations_check.py [--root DIR] [--ledger FILE] [--brief FILE]
 Exit code 1 when any relation fails.
@@ -38,6 +44,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import sourcelib as sl  # noqa: E402
+import provenance_check as pc  # noqa: E402  (the brief's citation helpers)
 
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -56,6 +63,7 @@ DECISION = re.compile(r"\b(agreed|decided|confirmed|approved|signed off|chose|ch
 CUE = re.compile(r"\b(?:was|were|not|from|instead of|rather than|previously|formerly|originally)\s+"
                  r"(?:about\s+|around\s+|the\s+)?$", re.I)
 REPLACES = re.compile(r"\b(replac\w+|supersed\w+|obsolet\w+|retir\w+)\b", re.I)
+CONTESTED = re.compile(r"\bcontested\b|\bopen conflicts?\b", re.I)
 
 
 @dataclass
@@ -145,7 +153,114 @@ def open_conflicts(brief_text):
     return bullets
 
 
-def check(data, root, brief_text=None):
+def _short(word):
+    """A word cut to a common form, so "throttle" meets "throttled"."""
+    s = sl.stem(word)
+    return s[:5] if len(s) >= 5 else s
+
+
+def claim_words(text):
+    """The words of a claim that carry meaning: no stop, unit or decision words."""
+    out = set()
+    for w in sl.WORD.findall(text):
+        low = w.lower().strip("'")
+        if len(low) >= 2 and low not in sl.STOP and low not in sl.UNITS and not DECISION.fullmatch(low):
+            out.add(_short(low))
+    return out
+
+
+@dataclass
+class Side:
+    """One claim of a contradiction, and what sets it apart from the other claims."""
+    value: str
+    source: object
+    atoms: set          # its own numbers, dates, versions and identifiers
+    own_words: set      # its own words, minus the topic
+    words: set          # every word of the claim
+    has_atoms: bool
+
+
+def sides_of(topic, loaded):
+    atoms = [sl.extract(v) for v, _, _ in loaded]
+    words = [claim_words(v) for v, _, _ in loaded]
+    topic_words = claim_words(topic)
+    sides = []
+    for i, (value, src, _) in enumerate(loaded):
+        other_atoms = [a for j, group in enumerate(atoms) if j != i for a in group]
+        other_words = set().union(*(w for j, w in enumerate(words) if j != i))
+        own = {a for a in atoms[i] if not any(sl.same(a, o) or sl.same(o, a) for o in other_atoms)}
+        sides.append(Side(value, src, own, words[i] - other_words - topic_words, words[i], bool(atoms[i])))
+    numeric = all(s.atoms for s in sides)                       # each side has a number of its own
+    item = topic_words | set().union(*words)                    # every word about the item
+    common = topic_words | set.intersection(*words)             # the item, without either value
+    return sides, numeric, item, common
+
+
+def states(side, numeric, line, line_words, cites, item, common):
+    """True when a brief line gives this side of a conflict as a fact.
+
+    Numbers: the line holds the side's own numbers, and it cites the side's
+    source or shares two words with the conflict.
+    Words (a conflict where a side has no number of its own): the line cites
+    the side's source, holds one of the side's own words and shares two
+    words with the item; or the line holds every word of the claim.
+    """
+    def about(words):
+        return bool(words) and len(words & line_words) >= min(2, len(words))
+
+    if side.atoms and all(sl.grounded(a, line) for a in side.atoms) and (cites or about(item)):
+        return True
+    if numeric:
+        return False
+    if side.own_words & line_words and cites and about(common):
+        return True
+    return bool(not side.has_atoms and side.words and side.words <= line_words)
+
+
+def settled_lines(brief_text):
+    """Yield (line number, section, line) for each fact outside Open conflicts and Sources."""
+    section = None
+    for n, line in enumerate(brief_text.splitlines(), 1):
+        if line.startswith("## "):
+            section = line[3:].strip()
+            continue
+        fact = re.sub(r"^[-*]\s+", "", line.strip())
+        if section is None or section.lower() in ("open conflicts", "sources"):
+            continue
+        if fact and fact.lower().rstrip(".") != "none":
+            yield n, section, fact
+
+
+def contested_values(conflicts, brief_text, load, brief_name="brief.md"):
+    """A value that is one side of a contradiction must not stand as a fact
+    in another section of the brief. Return a Problem for each line that
+    gives one, unless the line says that the item is contested."""
+    problems = []
+    names = pc.brief_sources(brief_text.splitlines())
+    parsed = [(rid, sides_of(topic, loaded)) for rid, topic, loaded in conflicts]
+    for n, section, fact in settled_lines(brief_text):
+        if CONTESTED.search(fact):
+            continue
+        text = pc.BRACKET.sub(" ", fact)
+        line, line_words = sl.Source(text=text), claim_words(text)
+        cited = set()
+        for group in pc.BRACKET.findall(fact):
+            for ref in group.split(";"):
+                link = pc.lookup(ref, names)
+                src = load(link)[0] if link else None
+                if src:
+                    cited.add(src.path)
+        for rid, (sides, numeric, item, common) in parsed:
+            hit = next((s for s in sides if states(s, numeric, line, line_words, s.source.path in cited, item, common)), None)
+            if hit:
+                problems.append(Problem(rid, (
+                    f'{brief_name}:{n} ({section}) states "{hit.value}" as settled, but it is one side of an open '
+                    f'conflict: "{fact[:70]}". Take the value out of that line and write '
+                    '"<item>: contested, see Open conflicts", with both sources.')))
+    return problems
+
+
+def check(data, root, brief_text=None, brief_name="brief.md"):
     root = Path(root)
     result = Result()
     cache = {}
@@ -226,7 +341,7 @@ def check(data, root, brief_text=None):
                     f"change word, and none names the document it replaces.{decision_note(new_value, new)} "
                     "Record a contradiction.")
         elif kind == "contradiction":
-            conflicts.append((rid, loaded))
+            conflicts.append((rid, str(r.get("topic") or ""), loaded))
             dated = [(v, s) for v, s, _ in loaded if s.date is not None]
             for old_value, old in dated:
                 for new_value, new in dated:
@@ -248,7 +363,7 @@ def check(data, root, brief_text=None):
     if brief_text is not None:
         bullets = open_conflicts(brief_text)
         matched = set()
-        for rid, loaded in conflicts:
+        for rid, _, loaded in conflicts:
             hits = [i for i, b in enumerate(bullets) if all(sl.text_has(v, b) for v, _, _ in loaded)]
             if hits:
                 matched.update(hits)
@@ -257,17 +372,18 @@ def check(data, root, brief_text=None):
         for i, b in enumerate(bullets):
             if i not in matched:
                 result.problems.append(Problem("brief", f'Open conflicts lists a conflict that is not in the ledger: "{b.strip()[:70]}"'))
+        result.problems += contested_values(conflicts, brief_text, load, brief_name)
     return result
 
 
-def check_text(text, root, brief_text=None):
+def check_text(text, root, brief_text=None, brief_name="brief.md"):
     try:
         data = json.loads(text)
     except ValueError as err:
         result = Result()
         result.problems.append(Problem("-", f"the ledger is not valid JSON: {err}"))
         return result
-    return check(data, root, brief_text)
+    return check(data, root, brief_text, brief_name)
 
 
 def main(argv=None):
@@ -283,7 +399,7 @@ def main(argv=None):
         return 1
     brief = root / args.brief
     brief_text = brief.read_text(encoding="utf-8", errors="replace") if brief.is_file() else None
-    result = check_text(ledger.read_text(encoding="utf-8", errors="replace"), root, brief_text)
+    result = check_text(ledger.read_text(encoding="utf-8", errors="replace"), root, brief_text, args.brief)
     for rid, (src, line, kind) in result.evidence.items():
         print(f"OK     supersession {rid}: {src}:{line} ({kind})")
     for p in result.problems:

@@ -177,6 +177,7 @@ I planted the failures a company fears most in a fictional project, then scored 
 - **Answer key:** [`tests/answers/`](tests/answers/). The rules tell the capture job never to read `tests/`.
 - **Unseen test set:** 2 more Drive documents and 1 issue with new kinds of hidden details, an answer key that I wrote before any run saw them, and one trap (the same date written two ways).
 - **Second unseen test set (round 5):** 3 more documents, with the key written first. The hidden details avoid the pattern check on purpose: pay written in words, a health note with no keyword, a name written as an initial and a surname. The 7 judgement tests include a decision with no mention of the old value, a decision that gives the old value, a record that names the document it replaces, an old document that turns up late, and one date written two ways.
+- **Third unseen test set (round 6):** 2 more documents, with the key written first. Each of 2 new conflicts is against a value that the brief already gave as a decision. The 8 judgement tests also include a conflict that a later document resolves, and the same number about another item.
 
 [`tests/score.py`](tests/score.py) checks redaction and names automatically, and lists the judgement tests for a person to mark. With `--auto`, a script marks them as well. [`tests/results/`](tests/results/) holds each round's marks and scores.
 
@@ -190,7 +191,7 @@ Three scripts test the output against the documents. They use no model and no ne
 |---|---|---|
 | **Redaction** | A pattern for a confidential detail: a phone number, a password, a pay amount. | [`redaction_check.py`](scripts/redaction_check.py) |
 | **Provenance** | A number, date, version, or identifier that is in no document the card or line cites. A citation that does not resolve, or that points outside the source folders. | [`provenance_check.py`](scripts/provenance_check.py) |
-| **Relations** | A "replaced" fact with no evidence in the later document. A later document dated before the earlier one. A conflict in the ledger that the brief does not list. | [`relations_check.py`](scripts/relations_check.py) |
+| **Relations** | A "replaced" fact with no evidence in the later document. A later document dated before the earlier one. A conflict in the ledger that the brief does not list. A brief line outside Open conflicts that gives one side of an open conflict as a fact. | [`relations_check.py`](scripts/relations_check.py) |
 
 <details>
 <summary>Show how the checks were tested</summary>
@@ -200,14 +201,15 @@ Three scripts test the output against the documents. They use no model and no ne
 - **The missed conflict, first.** Before any rule changed, a test showed that the round 4 output fails: "retention 90 days moved to 30 days" has no evidence of a change.
 - **Red-team cases.** Each check has cases written to break it. The cases that held are tests. The cases that broke a check are also tests, named as known gaps.
 - **Script marks against a person's marks.** The script agrees with all 55 marks that a person saved in rounds 1 to 4. The first set of rules agreed with 54. On the second unseen set the script agrees with 6 of the 7 marks: it passed one test that the person failed.
+- **A defect that a person found, first.** In round 5 the brief listed a limit as an open conflict (5k against 4k) and still gave 5k under Decisions. A test on that brief came before the check. The check now fails that brief and names the line. It also fails two older outputs with the same defect.
 
-One command runs everything: `python scripts/run_checks.py`. For the full record, see [round 5](iterations/05-provenance-and-relations.md).
+One command runs everything: `python scripts/run_checks.py`. For the full record, see [round 5](iterations/05-provenance-and-relations.md) and [round 6](iterations/06-contested-values.md).
 
 </details>
 
 ## Results
 
-Redaction held in all 5 rounds with 0 names leaked. Judgement tests rose from 8/12 to 12/12 on the main set. On unseen documents they passed 7/7 in round 4 and 4/7 in round 5.
+Redaction held in all 6 rounds with 0 names leaked. Judgement tests rose from 8/12 to 12/12 on the main set. On unseen documents they passed 7/7 in round 4 and 4/7 in round 5. In round 6 a script marked 8/8, against 5/8 for the round 5 rules on the same documents; no person has marked that round.
 
 <details>
 <summary>Show the scores for each round</summary>
@@ -220,8 +222,9 @@ Redaction held in all 5 rounds with 0 names leaked. Judgement tests rose from 8/
 | 4 | **Unseen documents (a held-out set), rules locked** | **6/6** | **0** | **7/7** |
 | 5 | Typed relations, provenance check, checks inside capture | 20/20 | 0 | 12/12, marked by a script |
 | 5 | **Second set of unseen documents, rules locked** | **8/8** | **0** | **4/7** (a script marked 5/7) |
+| 6 | **Third set of unseen documents, rules locked:** a contested value is never a settled fact | **4/4** | **0** | **8/8**, marked by a script. The round 5 rules scored 5/8 on the same documents |
 
-A person marked rounds 1 to 4 and the second unseen set. A script marked the round 5 rebuild.
+A person marked rounds 1 to 4 and the second unseen set. A script marked the round 5 rebuild and round 6.
 
 New checks in round 5, on the same output before and after:
 
@@ -231,7 +234,7 @@ New checks in round 5, on the same output before and after:
 | Relations that fail against the documents | No ledger | 0 in 10 |
 | The missed conflict (C1) | Recorded as a replaced fact | Listed as an open conflict |
 
-Each round has a page in [`iterations/`](iterations/) with its failures, the exact rule change, the score after, and the cost. Round 3 is the clearest example: a reviewer said the list of conflicts was unclear, and the page shows the list before and after the rule change. Round 5 shows the two tests that the second unseen set failed.
+Each round has a page in [`iterations/`](iterations/) with its failures, the exact rule change, the score after, and the cost. Round 3 is the clearest example: a reviewer said the list of conflicts was unclear, and the page shows the list before and after the rule change. Round 5 shows the two tests that the second unseen set failed. Round 6 shows a defect that a person found, the test that reproduced it, and a control run.
 
 </details>
 
@@ -250,11 +253,20 @@ The biggest gap: the newest unseen test passed 4 of 7 judgement tests, and the c
 </details>
 
 <details>
-<summary>Show all 17 open gaps</summary>
+<summary>Show what round 6 closed</summary>
+
+- **The brief no longer gives a contested value as a decision.** In round 5 the brief listed a limit under Open conflicts (5k against 4k) and still gave 5k under Decisions. A person found it while marking. A rule and a check now cover it: the line reads "contested, see Open conflicts". On 2 unseen documents the new rules kept 3 contested values out of Decisions. The round 5 rules left 2 of them in. See [round 6](iterations/06-contested-values.md).
+
+</details>
+
+<details>
+<summary>Show all 19 open gaps</summary>
 
 - **The provenance check reads words, not meaning.** It misses a claim that reverses its source ("No duplicates" to "Duplicates were seen"), a wrong number that the source also holds, and a made-up reason with no number in it. It lists unknown words for a person. Only a model or a person can judge meaning.
 - **Three misses on the second unseen set.** An old review note says the partition count "moved to 24"; a later decision record says 12. Capture kept 12, which is correct, but did not list the conflict. It did not record that an alert limit for a test run and the limit for go-live are two scopes. It wrote "9 days" for a test run that was 7 days, and did not record that 9 replaced 7. For the cause that capture reported, see [round 5](iterations/05-provenance-and-relations.md#what-failed).
-- **The brief can state a contested value as a decision.** In round 5 the brief lists a limit under Open conflicts (5k against 4k) and still gives 5k under Decisions. No test and no check covers this. A person found it while marking.
+- **The contested-value check reads the brief, not the cards.** A card can still give one side of an open conflict as the decision. The control run in round 6 wrote such a card. The check is a keyword test: it wrongly fails the same number about another item from the same document, and it misses a claim with no number that is put in other words.
+- **Round 6 has one run for each set of rules, and no person has marked it.** The 8/8 against 5/8 is two runs of a model, marked by a script. The check found nothing to fix inside the capture run, so the rule did the work.
+- **The brief is over its length limit.** After round 6 it is 752 words against a limit of 600. Each open conflict adds a quoted line. No script checks the length. One contested line also lost a detail that no document disputes.
 - **The checks cannot find what capture left out.** They test each relation that capture wrote. All three reported 0 failures on the run that missed three relations.
 - **No run has written a scope difference.** Only unit tests cover that type.
 - **The script is more lenient than a person.** On the second unseen set the script passed 5 of 7 and a person passed 4. The script took a card and a date line as the record of a replaced fact. A script marked the round 5 rebuild (12/12), and no person has. The script uses keyword rules, written with the earlier human marks in view.
