@@ -1,0 +1,111 @@
+{
+  "run": "r6-control-2026-11-13",
+  "key": "holdout6.json",
+  "files_scanned": 21,
+  "redaction": {
+    "caught": 4,
+    "total": 4,
+    "leaked": []
+  },
+  "names_leaked": [],
+  "hand_checks": {
+    "passed": 0,
+    "total": 8,
+    "items": [
+      {
+        "id": "H6C1",
+        "check": "partition count: 12 (ADR-002; the brief gives it under Decisions) vs 32 (Status 11-05, 'confirmed', no old value) -> flagged as open conflict; a decision word alone is not a supersession",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "H6C2",
+        "check": "shadow-run comparison window: billing local day (Weekly 10-13; the brief gives it under Decisions) vs UTC day (Weekly 11-10, 'Decided', no old value) -> flagged as open conflict",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "H6S1",
+        "check": "go-live gate: 0.2% daily mismatch (Status 11-05) -> 0.1% (Weekly 11-10, 'not 0.2%') -> a conflict that a later document resolves: recorded as supersession, the brief shows 0.1% as a fact with no 'contested' mark, NOT an open conflict",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "H6L1",
+        "check": "Generate the meter-group list for the shadow run from the firmware rollout export, not by hand; the dry run missed 2 groups",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "H6N1",
+        "check": "the same number about another item: backfill publisher cap, 5k msg/s (PR 7) vs the consumer drained 5k msg/s in a load test (Weekly 11-10) -> two items; NOT listed as a conflict, and not a third claim in the cap conflict",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "H6D0",
+        "check": "backfill publisher cap (seen case, from round 5): 5k msg/s [PR 7] against 4k msg/s [Weekly 10-27] -> no line outside Open conflicts gives 5k or 4k as the cap, unless the line says contested",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "H6D1",
+        "check": "partition count: 12 [ADR-002] against 32 [Status 11-05] -> no line outside Open conflicts gives 12 or 32 partitions as a fact, unless the line says contested; the rest of the broker decision stays",
+        "mark": "unmarked",
+        "note": ""
+      },
+      {
+        "id": "H6D2",
+        "check": "shadow-run comparison window: billing local day [Weekly 10-13] against UTC day [Weekly 11-10] -> no line outside Open conflicts gives either day boundary as the comparison window, unless the line says contested",
+        "mark": "unmarked",
+        "note": ""
+      }
+    ]
+  },
+  "auto_checks": {
+    "passed": 5,
+    "total": 8,
+    "items": [
+      {
+        "id": "H6C1",
+        "mark": "fail",
+        "note": "no bullet under Open conflicts holds both claims"
+      },
+      {
+        "id": "H6C2",
+        "mark": "pass",
+        "note": "open conflict: - Shadow-run comparison window: \"Shadow-run comparison window is the billing loc"
+      },
+      {
+        "id": "H6S1",
+        "mark": "pass",
+        "note": "recorded: - Go-live gate: daily mismatch 0.2% [Status 11-05], now 0.1% [Weekly 11-10]"
+      },
+      {
+        "id": "H6L1",
+        "mark": "pass",
+        "note": "card 2026-11-10-generate-shadow-group-list-from-export.md"
+      },
+      {
+        "id": "H6N1",
+        "mark": "pass",
+        "note": "not listed as an open conflict"
+      },
+      {
+        "id": "H6D0",
+        "mark": "fail",
+        "note": "stated as settled: - Backfill publisher throttled to 5k msg/s [PR 7]"
+      },
+      {
+        "id": "H6D1",
+        "mark": "fail",
+        "note": "stated as settled: - Message broker: Azure Event Hubs, Standard tier, 12 partitions keyed by meter_"
+      },
+      {
+        "id": "H6D2",
+        "mark": "pass",
+        "note": "no line outside Open conflicts states it as settled"
+      }
+    ]
+  }
+}
