@@ -1,0 +1,36 @@
+{
+  "_note": "Held-out answer key for round 6 (claude-vault#139), written 2026-11-13 before the two held-out documents were added to the repo and before any run saw them. Rules frozen at commit a1bc76f. H6D0 is a seen case: the rule was written with it in view. The other 7 judgement tests are unseen. Capture and lint must never read tests/.",
+  "redaction_seeds": [
+    {"id": 1, "kind": "leave", "match": "paternity", "where": "Status 11-05"},
+    {"id": 2, "kind": "commercial, discount", "match": "discount", "where": "Status 11-05"},
+    {"id": 3, "kind": "password", "match": "Sh4dow", "where": "Weekly 11-10"},
+    {"id": 4, "kind": "phone", "match": "5550 0142", "where": "Weekly 11-10"}
+  ],
+  "names": ["Priya", "Raman", "Marco", "Silva", "Jun Park", "Aisha", "Bello", "Tom Eriksen", "Eriksen", "Janet", "Okafor", "Lena", "Vogt", "Dmitri", "Kovac", "Farah", "Nasser"],
+  "contradictions": [
+    {"id": "H6C1", "topic": "partition count", "a": "12 (ADR-002; the brief gives it under Decisions)", "b": "32 (Status 11-05, 'confirmed', no old value)", "expected": "flagged as open conflict; a decision word alone is not a supersession",
+     "auto": {"rule": "conflict", "all": ["partition", "\\b32\\b", "\\b12\\b"]}},
+    {"id": "H6C2", "topic": "shadow-run comparison window", "a": "billing local day (Weekly 10-13; the brief gives it under Decisions)", "b": "UTC day (Weekly 11-10, 'Decided', no old value)", "expected": "flagged as open conflict",
+     "auto": {"rule": "conflict", "all": ["comparison", "local day", "\\bUTC\\b"]}}
+  ],
+  "supersessions": [
+    {"id": "H6S1", "topic": "go-live gate", "old": "0.2% daily mismatch (Status 11-05)", "new": "0.1% (Weekly 11-10, 'not 0.2%')", "expected": "a conflict that a later document resolves: recorded as supersession, the brief shows 0.1% as a fact with no 'contested' mark, NOT an open conflict",
+     "auto": {"rule": "supersession", "topic": "gate|mismatch", "old": "0\\.2 ?%", "new": "0\\.1 ?%"}}
+  ],
+  "expected_learnings": [
+    {"id": "H6L1", "lesson": "Generate the meter-group list for the shadow run from the firmware rollout export, not by hand; the dry run missed 2 groups",
+     "auto": {"rule": "learning", "all": ["meter.group", "by hand|manual", "export"]}}
+  ],
+  "negatives": [
+    {"id": "H6N1", "topic": "the same number about another item", "a": "backfill publisher cap, 5k msg/s (PR 7)", "b": "the consumer drained 5k msg/s in a load test (Weekly 11-10)", "expected": "two items; NOT listed as a conflict, and not a third claim in the cap conflict",
+     "auto": {"rule": "not_conflict", "all": ["consumer|drain"]}}
+  ],
+  "settled": [
+    {"id": "H6D0", "topic": "backfill publisher cap (seen case, from round 5)", "value": "5k msg/s [PR 7] against 4k msg/s [Weekly 10-27]", "expected": "no line outside Open conflicts gives 5k or 4k as the cap, unless the line says contested",
+     "auto": {"rule": "not_settled", "all": ["publisher|\\bcap\\b|throttl", "\\b[45]k\\b|\\b[45],000\\b"]}},
+    {"id": "H6D1", "topic": "partition count", "value": "12 [ADR-002] against 32 [Status 11-05]", "expected": "no line outside Open conflicts gives 12 or 32 partitions as a fact, unless the line says contested; the rest of the broker decision stays",
+     "auto": {"rule": "not_settled", "all": ["partition", "\\b(12|32)\\b"]}},
+    {"id": "H6D2", "topic": "shadow-run comparison window", "value": "billing local day [Weekly 10-13] against UTC day [Weekly 11-10]", "expected": "no line outside Open conflicts gives either day boundary as the comparison window, unless the line says contested",
+     "auto": {"rule": "not_settled", "all": ["comparison", "local day|UTC day"]}}
+  ]
+}
