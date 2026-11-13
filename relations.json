@@ -3,10 +3,19 @@
     {
       "id": "broker-platform",
       "topic": "message broker platform",
-      "type": "contradiction",
+      "type": "supersession",
       "claims": [
         {"value": "Kafka on AKS, 3 brokers, 12 partitions keyed by meter_id", "source": "sources/alpha-solution-design-v1.md"},
-        {"value": "Azure Event Hubs (Standard tier, 12 partitions, keyed by meter_id)", "source": "decisions/ADR-002-message-broker.md"}
+        {"value": "Azure Event Hubs is the message broker. This record replaces section 2 (Message broker) of Solution Design v1.", "source": "decisions/ADR-003-design-doc-broker-section.md"}
+      ]
+    },
+    {
+      "id": "backfill-publisher-cap",
+      "topic": "backfill publisher rate cap",
+      "type": "contradiction",
+      "claims": [
+        {"value": "Backfill publisher throttled to 5k msg/s", "source": "https://github.com/eraserhead21/company-brain-poc/pull/7"},
+        {"value": "Confirmed: the backfill publisher cap is 4k msg/s", "source": "sources/alpha-meeting-notes-2026-10-27-weekly.md"}
       ]
     },
     {
