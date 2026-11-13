@@ -55,6 +55,24 @@
       ]
     },
     {
+      "id": "shadow-run-comparison-window",
+      "topic": "shadow-run comparison window",
+      "type": "contradiction",
+      "claims": [
+        {"value": "Shadow-run comparison window is the billing local day, 00:00 to 00:00", "source": "sources/alpha-meeting-notes-2026-10-13-weekly.md"},
+        {"value": "Decided: the shadow-run comparison window is the UTC day", "source": "sources/alpha-meeting-notes-2026-11-10-weekly.md"}
+      ]
+    },
+    {
+      "id": "go-live-gate",
+      "topic": "go-live mismatch gate",
+      "type": "supersession",
+      "claims": [
+        {"value": "Go-live gate: daily mismatch under 0.2% across the shadow run", "source": "sources/alpha-status-update-2026-11-05.md"},
+        {"value": "Correction to the 5 November status update: the go-live gate is 0.1% daily mismatch, not 0.2%", "source": "sources/alpha-meeting-notes-2026-11-10-weekly.md"}
+      ]
+    },
+    {
       "id": "go-live-date",
       "topic": "go-live date",
       "type": "supersession",
